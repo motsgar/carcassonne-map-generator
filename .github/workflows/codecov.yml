@@ -23,5 +23,5 @@ jobs:
           fail_ci_if_error: true
           files: ./coverage/clover.xml
           name: carcassonne-map-generator-coverage
-          path_to_write_report: ./coverage/codecov_report.txt
+          path_to_write_report: ./coverage/coverage-final.json
           verbose: true
