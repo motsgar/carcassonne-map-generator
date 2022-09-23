@@ -18,10 +18,3 @@ jobs:
         run: npm run test
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
-        with:
-          directory: ./coverage/reports/
-          fail_ci_if_error: true
-          files: ./coverage/clover.xml
-          name: carcassonne-map-generator-coverage
-          path_to_write_report: ./coverage/coverage-final.json
-          verbose: true
