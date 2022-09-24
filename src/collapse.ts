@@ -19,33 +19,50 @@ type Tile = {
 const tiles: Tile[] = [];
 const map: Tile[][] = Array.from(Array(mapWidth), () => new Array(mapHeight));
 
-const printMap = (): void => {
-    let outputString = '';
-    outputString += '┏' + '━┳'.repeat(mapWidth - 1) + '━┓\n';
-    for (let y = 0; y < mapHeight; y++) {
-        outputString += '┃';
-        for (let x = 0; x < mapWidth; x++) {
-            const tile = map[y][x];
-            if (tile) outputString += 'A';
-            else outputString += ' ';
-            outputString += '┃';
-        }
-        if (y < mapHeight - 1) outputString += '\n┣' + '━╋'.repeat(mapWidth - 1) + '━┫\n';
-    }
-    outputString += '\n┗' + '━┻'.repeat(mapWidth - 1) + '━┛';
-    console.log(outputString);
-};
-
-// TMP x and y can't be on the edge of the map array.
 const getPossibleTiles = (x: number, y: number): Tile[] => {
     if (map[y][x]) return [];
 
     const filteredTiles = tiles
-        .filter((tile) => (map[x][y - 1] !== undefined ? tile.top === map[x][y - 1].bottom : true))
-        .filter((tile) => (map[x + 1][y] !== undefined ? tile.right === map[x + 1][y].left : true))
-        .filter((tile) => (map[x][y + 1] !== undefined ? tile.bottom === map[x][y + 1].top : true))
-        .filter((tile) => (map[x - 1][y] !== undefined ? tile.left === map[x - 1][y].right : true));
+        .filter((tile) => (y >= 1 ? (map[y - 1][x] !== undefined ? tile.top === map[y - 1][x].bottom : true) : true))
+        .filter((tile) =>
+            x < map[0].length - 1 ? (map[y][x + 1] !== undefined ? tile.right === map[y][x + 1].left : true) : true
+        )
+        .filter((tile) =>
+            y < map.length - 1 ? (map[y + 1][x] !== undefined ? tile.bottom === map[y + 1][x].top : true) : true
+        )
+        .filter((tile) => (x >= 1 ? (map[y][x - 1] !== undefined ? tile.left === map[y][x - 1].right : true) : true));
     return filteredTiles;
+};
+
+const printMap = (): void => {
+    let outputString = '';
+    outputString += '┏' + '━━━━━━┳'.repeat(mapWidth - 1) + '━━━━━━┓\n';
+    for (let y = 0; y < mapHeight; y++) {
+        outputString += '┃';
+        for (let x = 0; x < mapWidth; x++) {
+            const tile = map[y][x];
+            if (tile) outputString += '  ' + tile.top + '   ';
+            else outputString += '  -   ';
+            outputString += '┃';
+        }
+        outputString += '\n┃';
+        for (let x = 0; x < mapWidth; x++) {
+            const tile = map[y][x];
+            if (tile) outputString += tile.left + ' ' + '# ' + ' ' + tile.right;
+            else outputString += '- ' + getPossibleTiles(x, y).length.toString().padEnd(2) + ' -';
+            outputString += '┃';
+        }
+        outputString += '\n┃';
+        for (let x = 0; x < mapWidth; x++) {
+            const tile = map[y][x];
+            if (tile) outputString += '  ' + tile.bottom + '   ';
+            else outputString += '  -   ';
+            outputString += '┃';
+        }
+        if (y < mapHeight - 1) outputString += '\n┣' + '━━━━━━╋'.repeat(mapWidth - 1) + '━━━━━━┫\n';
+    }
+    outputString += '\n┗' + '━━━━━━┻'.repeat(mapWidth - 1) + '━━━━━━┛';
+    console.log(outputString);
 };
 
 tiles.push({ top: Side.Field, right: Side.City, bottom: Side.City, left: Side.Road });
@@ -68,11 +85,3 @@ map[1][5] = tiles[2];
 map[2][2] = tiles[3];
 
 printMap();
-
-for (let y = 1; y < mapHeight - 1; y++) {
-    for (let x = 1; x < mapWidth - 1; x++) {
-        if (map[y][x]) continue;
-        const possibleTiles = getPossibleTiles(x, y);
-        console.log(`x: ${x}, y: ${y}, possible tiles: ${possibleTiles.length}`);
-    }
-}
