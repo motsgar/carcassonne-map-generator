@@ -1,1 +1,2 @@
 import './appCanvas';
+import './collapse';
