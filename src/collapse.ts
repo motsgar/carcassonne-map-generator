@@ -20,15 +20,27 @@ const tiles: Tile[] = [];
 const map: Tile[][] = Array.from(Array(mapWidth), () => new Array(mapHeight));
 
 const printMap = (): void => {
-    console.table(map);
+    let outputString = '';
+    outputString += '┏' + '━┳'.repeat(mapWidth - 1) + '━┓\n';
+    for (let y = 0; y < mapHeight; y++) {
+        outputString += '┃';
+        for (let x = 0; x < mapWidth; x++) {
+            const tile = map[y][x];
+            if (tile) outputString += 'A';
+            else outputString += ' ';
+            outputString += '┃';
+        }
+        if (y < mapHeight - 1) outputString += '\n┣' + '━╋'.repeat(mapWidth - 1) + '━┫\n';
+    }
+    outputString += '\n┗' + '━┻'.repeat(mapWidth - 1) + '━┛';
+    console.log(outputString);
 };
 
+// TMP x and y can't be on the edge of the map array.
 const getPossibleTiles = (x: number, y: number): Tile[] => {
-    // TMP x and y can't be on the edge of the map array.
+    if (map[y][x]) return [];
 
-    let filteredTiles = [...tiles];
-
-    filteredTiles = filteredTiles
+    const filteredTiles = tiles
         .filter((tile) => (map[x][y - 1] !== undefined ? tile.top === map[x][y - 1].bottom : true))
         .filter((tile) => (map[x + 1][y] !== undefined ? tile.right === map[x + 1][y].left : true))
         .filter((tile) => (map[x][y + 1] !== undefined ? tile.bottom === map[x][y + 1].top : true))
@@ -59,7 +71,8 @@ printMap();
 
 for (let y = 1; y < mapHeight - 1; y++) {
     for (let x = 1; x < mapWidth - 1; x++) {
+        if (map[y][x]) continue;
         const possibleTiles = getPossibleTiles(x, y);
-        console.log(possibleTiles);
+        console.log(`x: ${x}, y: ${y}, possible tiles: ${possibleTiles.length}`);
     }
 }
