@@ -20,6 +20,7 @@ type TileWithPossibilities = {
     possibilities: Tile[];
     collapsed: boolean;
     possibilitiesChanged: boolean;
+    entropyChecked: boolean;
     sides: {
         top: Set<Side>;
         right: Set<Side>;
@@ -72,6 +73,7 @@ const map: TileWithPossibilities[][] = Array.from(Array(mapHeight), () =>
         possibilities: tiles.slice(),
         possibilitiesChanged: true,
         collapsed: false,
+        entropyChecked: false,
         sides: {
             top: new Set(tiles.map((tile) => tile.top)),
             right: new Set(tiles.map((tile) => tile.right)),
@@ -157,6 +159,7 @@ const calculatePossibleTiles = (x: number, y: number, editableMap: TileWithPossi
         bottom: new Set(editableMap[y][x].possibilities.map((tile) => tile.bottom)),
         left: new Set(editableMap[y][x].possibilities.map((tile) => tile.left)),
     };
+
     if (originalPossibilities.length !== editableMap[y][x].possibilities.length)
         editableMap[y][x].possibilitiesChanged = true;
     else editableMap[y][x].possibilitiesChanged = false;
@@ -171,6 +174,7 @@ const calculatePossibleTiles = (x: number, y: number, editableMap: TileWithPossi
         if (!editableMap[dependency.y][dependency.x].possibilitiesChanged) continue;
         calculatePossibleTiles(dependency.x, dependency.y, editableMap, depth + 1);
     }
+    editableMap[y][x].entropyChecked = true;
 
     return [];
 };
@@ -184,6 +188,14 @@ collapse(0, 1, tiles[6]);
 
 printMap(map);
 
-calculatePossibleTiles(2, 1, map);
+calculatePossibleTiles(0, 0, map);
 
+/*
+for (let y = 0; y < mapHeight; y++) {
+    for (let x = 0; x < mapWidth; x++) {
+        if (map[y][x].collapsed || map[y][x].entropyChecked) continue;
+        calculatePossibleTiles(x, y, map);
+    }
+}
+*/
 printMap(map);
