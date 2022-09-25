@@ -16,10 +16,38 @@ type Tile = {
     left: Side;
 };
 
+type TileWithPossibilities = {
+    tile: Tile;
+    possibilities: Tile[];
+    hasChanged: boolean;
+};
+
+// lookup table for every x and y coordinate of the map to say which tiles are dependent on the tile in that position
+// for now it just contains all tiles next to that tile. Might allow for more complex dependencies later
+const dependencyList: { x: number; y: number }[][][] = Array.from(Array(mapWidth), () => new Array(mapHeight));
+
+for (let y = 0; y < mapHeight; y++) {
+    for (let x = 0; x < mapWidth; x++) {
+        dependencyList[y][x] = [];
+        if (x > 0) {
+            dependencyList[y][x].push({ x: x - 1, y });
+        }
+        if (x < mapWidth - 1) {
+            dependencyList[y][x].push({ x: x + 1, y });
+        }
+        if (y > 0) {
+            dependencyList[y][x].push({ x, y: y - 1 });
+        }
+        if (y < mapHeight - 1) {
+            dependencyList[y][x].push({ x, y: y + 1 });
+        }
+    }
+}
+
 const tiles: Tile[] = [];
 const map: Tile[][] = Array.from(Array(mapWidth), () => new Array(mapHeight));
 
-const getPossibleTiles = (x: number, y: number): Tile[] => {
+const getPossibleTiles = (x: number, y: number, mapWithPossibilities?: TileWithPossibilities): Tile[] => {
     if (map[y][x]) return [];
 
     const filteredTiles = tiles
@@ -65,10 +93,24 @@ const printMap = (): void => {
     console.log(outputString);
 };
 
+const calculatePossibleTiles = (x: number, y: number, editableMap: TileWithPossibilities[][]): Tile[] => {
+    const dependencies = dependencyList[y][x];
+    const possibleTiles = getPossibleTiles(x, y, editableMap[y][x]);
+    for (const dependency of dependencies) {
+        if (map[dependency.y][dependency.x]) continue;
+        if (!editableMap[y][x].hasChanged) continue;
+        const newPossibleTiles = calculatePossibleTiles(dependency.x, dependency.y, editableMap);
+        if (editableMap[y][x].possibilities.length === newPossibleTiles.length) editableMap[y][x].hasChanged = true;
+        else editableMap[y][x].hasChanged = false;
+    }
+    return [];
+};
+
 tiles.push({ top: Side.Field, right: Side.City, bottom: Side.City, left: Side.Road });
 tiles.push({ top: Side.Field, right: Side.Field, bottom: Side.Field, left: Side.Field });
 tiles.push({ top: Side.City, right: Side.Field, bottom: Side.Road, left: Side.Field });
 tiles.push({ top: Side.Road, right: Side.Road, bottom: Side.Road, left: Side.Field });
+tiles.push({ top: Side.City, right: Side.Field, bottom: Side.Field, left: Side.Road });
 
 // create all possible orientations of a tile
 const originalTilesLength = tiles.length;
@@ -80,7 +122,7 @@ for (let i = 0; i < originalTilesLength; i++) {
 }
 
 map[1][1] = tiles[0];
-map[1][3] = tiles[1];
+map[1][3] = tiles[2];
 map[1][5] = tiles[2];
 map[2][2] = tiles[3];
 
