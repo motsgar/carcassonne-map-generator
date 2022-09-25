@@ -17,9 +17,15 @@ type Tile = {
 };
 
 type TileWithPossibilities = {
-    tile: Tile;
     possibilities: Tile[];
-    hasChanged: boolean;
+    collapsed: boolean;
+    possibilitiesChanged: boolean;
+    sides: {
+        top: Set<Side>;
+        right: Set<Side>;
+        bottom: Set<Side>;
+        left: Set<Side>;
+    };
 };
 
 // lookup table for every x and y coordinate of the map to say which tiles are dependent on the tile in that position
@@ -45,66 +51,6 @@ for (let y = 0; y < mapHeight; y++) {
 }
 
 const tiles: Tile[] = [];
-const map: Tile[][] = Array.from(Array(mapWidth), () => new Array(mapHeight));
-
-const getPossibleTiles = (x: number, y: number, mapWithPossibilities?: TileWithPossibilities): Tile[] => {
-    if (map[y][x]) return [];
-
-    const filteredTiles = tiles
-        .filter((tile) => (y >= 1 ? (map[y - 1][x] !== undefined ? tile.top === map[y - 1][x].bottom : true) : true))
-        .filter((tile) =>
-            x < map[0].length - 1 ? (map[y][x + 1] !== undefined ? tile.right === map[y][x + 1].left : true) : true
-        )
-        .filter((tile) =>
-            y < map.length - 1 ? (map[y + 1][x] !== undefined ? tile.bottom === map[y + 1][x].top : true) : true
-        )
-        .filter((tile) => (x >= 1 ? (map[y][x - 1] !== undefined ? tile.left === map[y][x - 1].right : true) : true));
-    return filteredTiles;
-};
-
-const printMap = (): void => {
-    let outputString = '';
-    outputString += '┏' + '━━━━━━┳'.repeat(mapWidth - 1) + '━━━━━━┓\n';
-    for (let y = 0; y < mapHeight; y++) {
-        outputString += '┃';
-        for (let x = 0; x < mapWidth; x++) {
-            const tile = map[y][x];
-            if (tile) outputString += '  ' + tile.top + '   ';
-            else outputString += '  -   ';
-            outputString += '┃';
-        }
-        outputString += '\n┃';
-        for (let x = 0; x < mapWidth; x++) {
-            const tile = map[y][x];
-            if (tile) outputString += tile.left + ' ' + '# ' + ' ' + tile.right;
-            else outputString += '- ' + getPossibleTiles(x, y).length.toString().padEnd(2) + ' -';
-            outputString += '┃';
-        }
-        outputString += '\n┃';
-        for (let x = 0; x < mapWidth; x++) {
-            const tile = map[y][x];
-            if (tile) outputString += '  ' + tile.bottom + '   ';
-            else outputString += '  -   ';
-            outputString += '┃';
-        }
-        if (y < mapHeight - 1) outputString += '\n┣' + '━━━━━━╋'.repeat(mapWidth - 1) + '━━━━━━┫\n';
-    }
-    outputString += '\n┗' + '━━━━━━┻'.repeat(mapWidth - 1) + '━━━━━━┛';
-    console.log(outputString);
-};
-
-const calculatePossibleTiles = (x: number, y: number, editableMap: TileWithPossibilities[][]): Tile[] => {
-    const dependencies = dependencyList[y][x];
-    const possibleTiles = getPossibleTiles(x, y, editableMap[y][x]);
-    for (const dependency of dependencies) {
-        if (map[dependency.y][dependency.x]) continue;
-        if (!editableMap[y][x].hasChanged) continue;
-        const newPossibleTiles = calculatePossibleTiles(dependency.x, dependency.y, editableMap);
-        if (editableMap[y][x].possibilities.length === newPossibleTiles.length) editableMap[y][x].hasChanged = true;
-        else editableMap[y][x].hasChanged = false;
-    }
-    return [];
-};
 
 tiles.push({ top: Side.Field, right: Side.City, bottom: Side.City, left: Side.Road });
 tiles.push({ top: Side.Field, right: Side.Field, bottom: Side.Field, left: Side.Field });
@@ -121,9 +67,123 @@ for (let i = 0; i < originalTilesLength; i++) {
     tiles.push({ top: tile.right, right: tile.bottom, bottom: tile.left, left: tile.top });
 }
 
-map[1][1] = tiles[0];
-map[1][3] = tiles[2];
-map[1][5] = tiles[2];
-map[2][2] = tiles[3];
+const map: TileWithPossibilities[][] = Array.from(Array(mapHeight), () =>
+    new Array(mapWidth).fill(undefined).map(() => ({
+        possibilities: tiles.slice(),
+        possibilitiesChanged: true,
+        collapsed: false,
+        sides: {
+            top: new Set(tiles.map((tile) => tile.top)),
+            right: new Set(tiles.map((tile) => tile.right)),
+            bottom: new Set(tiles.map((tile) => tile.bottom)),
+            left: new Set(tiles.map((tile) => tile.left)),
+        },
+    }))
+);
 
-printMap();
+const printMap = (mapToPrint: TileWithPossibilities[][]): void => {
+    let outputString = '';
+    outputString += '┏' + '━━━━━━┳'.repeat(mapWidth - 1) + '━━━━━━┓\n';
+    for (let y = 0; y < mapHeight; y++) {
+        outputString += '┃';
+        for (let x = 0; x < mapWidth; x++) {
+            const tile = mapToPrint[y][x];
+            if (tile.collapsed) outputString += '  ' + tile.sides.top.values().next().value + '   ';
+            else outputString += '  -   ';
+            outputString += '┃';
+        }
+
+        outputString += '\n┃';
+        for (let x = 0; x < mapWidth; x++) {
+            const tile = mapToPrint[y][x];
+            if (tile.collapsed)
+                outputString +=
+                    tile.sides.left.values().next().value + ' ' + '# ' + ' ' + tile.sides.right.values().next().value;
+            else outputString += '- ' + tile.possibilities.length.toString().padEnd(2) + ' -';
+            outputString += '┃';
+        }
+        outputString += '\n┃';
+        for (let x = 0; x < mapWidth; x++) {
+            const tile = mapToPrint[y][x];
+            if (tile.collapsed) outputString += '  ' + tile.sides.bottom.values().next().value + '   ';
+            else outputString += '  -   ';
+            outputString += '┃';
+        }
+
+        if (y < mapHeight - 1) outputString += '\n┣' + '━━━━━━╋'.repeat(mapWidth - 1) + '━━━━━━┫\n';
+    }
+    outputString += '\n┗' + '━━━━━━┻'.repeat(mapWidth - 1) + '━━━━━━┛';
+    console.log(outputString);
+};
+
+const collapse = (x: number, y: number, tile: Tile): void => {
+    const possibleTiles = map[y][x].possibilities;
+    if (possibleTiles.find((t) => t === tile)) {
+        map[y][x].possibilities = [tile];
+        map[y][x].possibilitiesChanged = true;
+        map[y][x].sides = {
+            top: new Set([tile.top]),
+            right: new Set([tile.right]),
+            bottom: new Set([tile.bottom]),
+            left: new Set([tile.left]),
+        };
+        map[y][x].collapsed = true;
+    }
+};
+
+const getPossibleTiles = (x: number, y: number, tileWithPossibilities: TileWithPossibilities): Tile[] => {
+    const filteredTiles = [];
+
+    for (const tile of tileWithPossibilities.possibilities) {
+        if (x > 0 && !map[y][x - 1].sides.right.has(tile.left)) continue;
+        if (x < mapWidth - 1 && !map[y][x + 1].sides.left.has(tile.right)) continue;
+        if (y > 0 && !map[y - 1][x].sides.bottom.has(tile.top)) continue;
+        if (y < mapHeight - 1 && !map[y + 1][x].sides.top.has(tile.bottom)) continue;
+
+        filteredTiles.push(tile);
+    }
+
+    return filteredTiles;
+};
+
+const calculatePossibleTiles = (x: number, y: number, editableMap: TileWithPossibilities[][], depth = 0): Tile[] => {
+    console.log(`depth: ${depth} calculatePossibleTiles`, x, y);
+    const dependencies = dependencyList[y][x];
+    const originalPossibilities = editableMap[y][x].possibilities;
+    editableMap[y][x].possibilities = getPossibleTiles(x, y, editableMap[y][x]);
+    editableMap[y][x].sides = {
+        top: new Set(editableMap[y][x].possibilities.map((tile) => tile.top)),
+        right: new Set(editableMap[y][x].possibilities.map((tile) => tile.right)),
+        bottom: new Set(editableMap[y][x].possibilities.map((tile) => tile.bottom)),
+        left: new Set(editableMap[y][x].possibilities.map((tile) => tile.left)),
+    };
+    if (originalPossibilities.length !== editableMap[y][x].possibilities.length)
+        editableMap[y][x].possibilitiesChanged = true;
+    else editableMap[y][x].possibilitiesChanged = false;
+
+    console.log(
+        `depth: ${depth} going through dependencies`,
+        dependencies.map((dep) => `(${dep.x}, ${dep.y})`)
+    );
+    for (const dependency of dependencies) {
+        if (map[dependency.y][dependency.x].collapsed) continue;
+        console.log(`depth: ${depth} checking if dependency (x: ${dependency.x}, y: ${dependency.y}) has changed`);
+        if (!editableMap[dependency.y][dependency.x].possibilitiesChanged) continue;
+        calculatePossibleTiles(dependency.x, dependency.y, editableMap, depth + 1);
+    }
+
+    return [];
+};
+
+collapse(1, 1, tiles[0]);
+collapse(3, 1, tiles[1]);
+collapse(5, 1, tiles[2]);
+collapse(2, 2, tiles[3]);
+collapse(4, 0, tiles[7]);
+collapse(0, 1, tiles[6]);
+
+printMap(map);
+
+calculatePossibleTiles(2, 1, map);
+
+printMap(map);
