@@ -1,5 +1,5 @@
-const mapWidth = 7;
-const mapHeight = 5;
+const mapWidth = 10;
+const mapHeight = 6;
 
 enum Side {
     Startpeice,
