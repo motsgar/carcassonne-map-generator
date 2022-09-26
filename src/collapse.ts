@@ -16,11 +16,19 @@ type Tile = {
     left: Side;
 };
 
-type TileWithPossibilities = {
+type Dependency = {
+    reverse: Dependency;
+    hasChanged: boolean;
+    x: number;
+    y: number;
+};
+
+type MapTile = {
     possibilities: Tile[];
     collapsed: boolean;
     possibilitiesChanged: boolean;
     entropyChecked: boolean;
+    dependencies: Dependency[];
     sides: {
         top: Set<Side>;
         right: Set<Side>;
@@ -29,6 +37,7 @@ type TileWithPossibilities = {
     };
 };
 
+/*
 // lookup table for every x and y coordinate of the map to say which tiles are dependent on the tile in that position
 // for now it just contains all tiles next to that tile. Might allow for more complex dependencies later
 const dependencyList: { x: number; y: number }[][][] = Array.from(Array(mapWidth), () => new Array(mapHeight));
@@ -50,7 +59,7 @@ for (let y = 0; y < mapHeight; y++) {
         }
     }
 }
-
+*/
 const tiles: Tile[] = [];
 
 tiles.push({ top: Side.Field, right: Side.City, bottom: Side.City, left: Side.Road });
@@ -68,12 +77,13 @@ for (let i = 0; i < originalTilesLength; i++) {
     tiles.push({ top: tile.right, right: tile.bottom, bottom: tile.left, left: tile.top });
 }
 
-const map: TileWithPossibilities[][] = Array.from(Array(mapHeight), () =>
+const map: MapTile[][] = Array.from(Array(mapHeight), () =>
     new Array(mapWidth).fill(undefined).map(() => ({
         possibilities: tiles.slice(),
         possibilitiesChanged: true,
         collapsed: false,
         entropyChecked: false,
+        dependencies: [],
         sides: {
             top: new Set(tiles.map((tile) => tile.top)),
             right: new Set(tiles.map((tile) => tile.right)),
@@ -83,7 +93,32 @@ const map: TileWithPossibilities[][] = Array.from(Array(mapHeight), () =>
     }))
 );
 
-const printMap = (mapToPrint: TileWithPossibilities[][]): void => {
+// generate lookup table for dependencies
+for (let y = 0; y < mapHeight; y++) {
+    for (let x = 0; x < mapWidth; x++) {
+        if (x > 0) {
+            map[y][x].dependencies.push({ x: x - 1, y, hasChanged: true } as Dependency); // breaking the type system temporarily because reverse has to be set later
+        }
+        if (x < mapWidth - 1) {
+            map[y][x].dependencies.push({ x: x + 1, y, hasChanged: true } as Dependency);
+        }
+        if (y > 0) {
+            map[y][x].dependencies.push({ x, y: y - 1, hasChanged: true } as Dependency);
+        }
+        if (y < mapHeight - 1) {
+            map[y][x].dependencies.push({ x, y: y + 1, hasChanged: true } as Dependency);
+        }
+    }
+}
+for (let y = 0; y < mapHeight; y++) {
+    for (let x = 0; x < mapWidth; x++) {
+        for (const dependency of map[y][x].dependencies) {
+            dependency.reverse = map[dependency.y][dependency.x].dependencies.find((d) => d.x === x && d.y === y);
+        }
+    }
+}
+
+const printMap = (mapToPrint: MapTile[][]): void => {
     let outputString = '';
     outputString += '┏' + '━━━━━━┳'.repeat(mapWidth - 1) + '━━━━━━┓\n';
     for (let y = 0; y < mapHeight; y++) {
@@ -133,7 +168,7 @@ const collapse = (x: number, y: number, tile: Tile): void => {
     }
 };
 
-const getPossibleTiles = (x: number, y: number, tileWithPossibilities: TileWithPossibilities): Tile[] => {
+const getPossibleTiles = (x: number, y: number, tileWithPossibilities: MapTile): Tile[] => {
     const filteredTiles = [];
 
     for (const tile of tileWithPossibilities.possibilities) {
@@ -148,9 +183,9 @@ const getPossibleTiles = (x: number, y: number, tileWithPossibilities: TileWithP
     return filteredTiles;
 };
 
-const calculatePossibleTiles = (x: number, y: number, editableMap: TileWithPossibilities[][], depth = 0): Tile[] => {
+const calculatePossibleTiles = (x: number, y: number, editableMap: MapTile[][], depth = 0): Tile[] => {
     console.log(`depth: ${depth} calculatePossibleTiles`, x, y);
-    const dependencies = dependencyList[y][x];
+    const dependencies = editableMap[y][x].dependencies;
     const originalPossibilities = editableMap[y][x].possibilities;
     editableMap[y][x].possibilities = getPossibleTiles(x, y, editableMap[y][x]);
     editableMap[y][x].sides = {
@@ -160,9 +195,16 @@ const calculatePossibleTiles = (x: number, y: number, editableMap: TileWithPossi
         left: new Set(editableMap[y][x].possibilities.map((tile) => tile.left)),
     };
 
-    if (originalPossibilities.length !== editableMap[y][x].possibilities.length)
-        editableMap[y][x].possibilitiesChanged = true;
-    else editableMap[y][x].possibilitiesChanged = false;
+    console.log(`depth: ${depth} dependencies`, dependencies);
+    for (const dependency of dependencies) {
+        console.log(
+            `depth: ${depth} dependency has changed`,
+            originalPossibilities.length !== editableMap[y][x].possibilities.length
+        );
+        dependency.hasChanged = false;
+        if (originalPossibilities.length !== editableMap[y][x].possibilities.length)
+            dependency.reverse.hasChanged = true;
+    }
 
     console.log(
         `depth: ${depth} going through dependencies`,
@@ -171,7 +213,8 @@ const calculatePossibleTiles = (x: number, y: number, editableMap: TileWithPossi
     for (const dependency of dependencies) {
         if (map[dependency.y][dependency.x].collapsed) continue;
         console.log(`depth: ${depth} checking if dependency (x: ${dependency.x}, y: ${dependency.y}) has changed`);
-        if (!editableMap[dependency.y][dependency.x].possibilitiesChanged) continue;
+        console.log(`depth: ${depth} dependencies`, map[dependency.y][dependency.x].dependencies);
+        if (!map[dependency.y][dependency.x].dependencies.reduce((val, cur) => val || cur.hasChanged, false)) continue;
         calculatePossibleTiles(dependency.x, dependency.y, editableMap, depth + 1);
     }
     editableMap[y][x].entropyChecked = true;
@@ -188,14 +231,17 @@ collapse(0, 1, tiles[6]);
 
 printMap(map);
 
-calculatePossibleTiles(0, 0, map);
-
-/*
+// calculatePossibleTiles(0, 0, map);
+console.time();
+let times = 0;
 for (let y = 0; y < mapHeight; y++) {
     for (let x = 0; x < mapWidth; x++) {
         if (map[y][x].collapsed || map[y][x].entropyChecked) continue;
+        times++;
         calculatePossibleTiles(x, y, map);
     }
 }
-*/
+console.log(times);
+console.timeEnd();
+
 printMap(map);
