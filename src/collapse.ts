@@ -37,29 +37,6 @@ type MapTile = {
     };
 };
 
-/*
-// lookup table for every x and y coordinate of the map to say which tiles are dependent on the tile in that position
-// for now it just contains all tiles next to that tile. Might allow for more complex dependencies later
-const dependencyList: { x: number; y: number }[][][] = Array.from(Array(mapWidth), () => new Array(mapHeight));
-
-for (let y = 0; y < mapHeight; y++) {
-    for (let x = 0; x < mapWidth; x++) {
-        dependencyList[y][x] = [];
-        if (x > 0) {
-            dependencyList[y][x].push({ x: x - 1, y });
-        }
-        if (x < mapWidth - 1) {
-            dependencyList[y][x].push({ x: x + 1, y });
-        }
-        if (y > 0) {
-            dependencyList[y][x].push({ x, y: y - 1 });
-        }
-        if (y < mapHeight - 1) {
-            dependencyList[y][x].push({ x, y: y + 1 });
-        }
-    }
-}
-*/
 const tiles: Tile[] = [];
 
 tiles.push({ top: Side.Field, right: Side.City, bottom: Side.City, left: Side.Road });
@@ -184,7 +161,6 @@ const getPossibleTiles = (x: number, y: number, tileWithPossibilities: MapTile):
 };
 
 const calculatePossibleTiles = (x: number, y: number, editableMap: MapTile[][], depth = 0): Tile[] => {
-    console.log(`depth: ${depth} calculatePossibleTiles`, x, y);
     const dependencies = editableMap[y][x].dependencies;
     const originalPossibilities = editableMap[y][x].possibilities;
     editableMap[y][x].possibilities = getPossibleTiles(x, y, editableMap[y][x]);
@@ -195,25 +171,14 @@ const calculatePossibleTiles = (x: number, y: number, editableMap: MapTile[][], 
         left: new Set(editableMap[y][x].possibilities.map((tile) => tile.left)),
     };
 
-    console.log(`depth: ${depth} dependencies`, dependencies);
     for (const dependency of dependencies) {
-        console.log(
-            `depth: ${depth} dependency has changed`,
-            originalPossibilities.length !== editableMap[y][x].possibilities.length
-        );
         dependency.hasChanged = false;
         if (originalPossibilities.length !== editableMap[y][x].possibilities.length)
             dependency.reverse.hasChanged = true;
     }
 
-    console.log(
-        `depth: ${depth} going through dependencies`,
-        dependencies.map((dep) => `(${dep.x}, ${dep.y})`)
-    );
     for (const dependency of dependencies) {
         if (map[dependency.y][dependency.x].collapsed) continue;
-        console.log(`depth: ${depth} checking if dependency (x: ${dependency.x}, y: ${dependency.y}) has changed`);
-        console.log(`depth: ${depth} dependencies`, map[dependency.y][dependency.x].dependencies);
         if (!map[dependency.y][dependency.x].dependencies.reduce((val, cur) => val || cur.hasChanged, false)) continue;
         calculatePossibleTiles(dependency.x, dependency.y, editableMap, depth + 1);
     }
