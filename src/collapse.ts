@@ -182,16 +182,6 @@ const propagateThroughTiles = (x: number, y: number, editableMap: MapTile[][]): 
     mapTile.entropyChecked = true;
 };
 
-// calculates all possible tiles for the whole map
-const calculateEntropy = (editableMap: MapTile[][]): void => {
-    for (let y = 0; y < mapHeight; y++) {
-        for (let x = 0; x < mapWidth; x++) {
-            if (editableMap[y][x].collapsed || editableMap[y][x].entropyChecked) continue;
-            propagateThroughTiles(x, y, editableMap);
-        }
-    }
-};
-
 // collapse a single coordinate to a specific tile
 const collapse = (x: number, y: number, tile: Tile): void => {
     const possibleTiles = map[y][x].possibilities;
