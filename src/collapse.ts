@@ -28,7 +28,6 @@ type MapTile = {
     y: number;
     possibilities: Tile[];
     collapsed: boolean;
-    entropyChecked: boolean;
     dependencies: Dependency[];
     sides: {
         top: Set<Side>;
@@ -179,7 +178,6 @@ const propagateThroughTiles = (x: number, y: number, editableMap: MapTile[][]): 
         if (!map[dependency.y][dependency.x].dependencies.reduce((val, cur) => val || cur.hasChanged, false)) continue;
         propagateThroughTiles(dependency.x, dependency.y, editableMap);
     }
-    mapTile.entropyChecked = true;
 };
 
 // collapse a single coordinate to a specific tile
