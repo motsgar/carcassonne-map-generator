@@ -160,7 +160,7 @@ const getPossibleTiles = (x: number, y: number, tileWithPossibilities: MapTile):
     return filteredTiles;
 };
 
-const calculatePossibleTiles = (x: number, y: number, editableMap: MapTile[][], depth = 0): Tile[] => {
+const calculatePossibleTiles = (x: number, y: number, editableMap: MapTile[][]): Tile[] => {
     const dependencies = editableMap[y][x].dependencies;
     const originalPossibilities = editableMap[y][x].possibilities;
     editableMap[y][x].possibilities = getPossibleTiles(x, y, editableMap[y][x]);
@@ -180,7 +180,7 @@ const calculatePossibleTiles = (x: number, y: number, editableMap: MapTile[][], 
     for (const dependency of dependencies) {
         if (map[dependency.y][dependency.x].collapsed) continue;
         if (!map[dependency.y][dependency.x].dependencies.reduce((val, cur) => val || cur.hasChanged, false)) continue;
-        calculatePossibleTiles(dependency.x, dependency.y, editableMap, depth + 1);
+        calculatePossibleTiles(dependency.x, dependency.y, editableMap);
     }
     editableMap[y][x].entropyChecked = true;
 
@@ -198,15 +198,12 @@ printMap(map);
 
 // calculatePossibleTiles(0, 0, map);
 console.time();
-let times = 0;
 for (let y = 0; y < mapHeight; y++) {
     for (let x = 0; x < mapWidth; x++) {
         if (map[y][x].collapsed || map[y][x].entropyChecked) continue;
-        times++;
         calculatePossibleTiles(x, y, map);
     }
 }
-console.log(times);
 console.timeEnd();
 
 printMap(map);
