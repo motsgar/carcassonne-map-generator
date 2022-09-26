@@ -24,6 +24,8 @@ type Dependency = {
 };
 
 type MapTile = {
+    x: number;
+    y: number;
     possibilities: Tile[];
     collapsed: boolean;
     entropyChecked: boolean;
@@ -56,6 +58,8 @@ for (let i = 0; i < originalTilesLength; i++) {
 // create 2d map of tiles and initialize every position with all possible tiles
 const map: MapTile[][] = Array.from(Array(mapHeight), () =>
     new Array(mapWidth).fill(undefined).map(() => ({
+        x: 0,
+        y: 0,
         possibilities: tiles.slice(),
         collapsed: false,
         entropyChecked: false,
@@ -69,20 +73,27 @@ const map: MapTile[][] = Array.from(Array(mapHeight), () =>
     }))
 );
 
+for (let y = 0; y < mapHeight; y++) {
+    for (let x = 0; x < mapWidth; x++) {
+        map[y][x].x = x;
+        map[y][x].y = y;
+    }
+}
+
 // fill the dependencies of a tile with all tiles that depend on it (currently only the tiles next to it)
 for (let y = 0; y < mapHeight; y++) {
     for (let x = 0; x < mapWidth; x++) {
         if (x > 0) {
-            map[y][x].dependencies.push({ x: x - 1, y, hasChanged: true } as Dependency); // breaking the type system temporarily because reverse has to be set later
+            map[y][x].dependencies.push({ x: x - 1, y, hasChanged: false } as Dependency); // breaking the type system temporarily because reverse has to be set later
         }
         if (x < mapWidth - 1) {
-            map[y][x].dependencies.push({ x: x + 1, y, hasChanged: true } as Dependency);
+            map[y][x].dependencies.push({ x: x + 1, y, hasChanged: false } as Dependency);
         }
         if (y > 0) {
-            map[y][x].dependencies.push({ x, y: y - 1, hasChanged: true } as Dependency);
+            map[y][x].dependencies.push({ x, y: y - 1, hasChanged: false } as Dependency);
         }
         if (y < mapHeight - 1) {
-            map[y][x].dependencies.push({ x, y: y + 1, hasChanged: true } as Dependency);
+            map[y][x].dependencies.push({ x, y: y + 1, hasChanged: false } as Dependency);
         }
     }
 }
@@ -127,23 +138,6 @@ const printMap = (mapToPrint: MapTile[][]): void => {
     }
     outputString += '\n┗' + '━━━━━━┻'.repeat(mapWidth - 1) + '━━━━━━┛';
     console.log(outputString);
-};
-
-// collapse a single coordinate to a specific tile
-const collapse = (x: number, y: number, tile: Tile): void => {
-    const possibleTiles = map[y][x].possibilities;
-    // check if the tile can be collapsed to the given tile
-    if (possibleTiles.find((t) => t === tile)) {
-        map[y][x].possibilities = [tile];
-        map[y][x].sides = {
-            top: new Set([tile.top]),
-            right: new Set([tile.right]),
-            bottom: new Set([tile.bottom]),
-            left: new Set([tile.left]),
-        };
-        map[y][x].collapsed = true;
-        for (const dependency of map[y][x].dependencies) dependency.reverse.hasChanged = true;
-    }
 };
 
 // checks a single coordinate for all possible tiles that fit the given sides
@@ -198,6 +192,25 @@ const calculateEntropy = (editableMap: MapTile[][]): void => {
     }
 };
 
+// collapse a single coordinate to a specific tile
+const collapse = (x: number, y: number, tile: Tile): void => {
+    const possibleTiles = map[y][x].possibilities;
+    // check if the tile can be collapsed to the given tile
+    if (possibleTiles.find((t) => t === tile)) {
+        map[y][x].possibilities = [tile];
+        map[y][x].sides = {
+            top: new Set([tile.top]),
+            right: new Set([tile.right]),
+            bottom: new Set([tile.bottom]),
+            left: new Set([tile.left]),
+        };
+        map[y][x].collapsed = true;
+        for (const dependency of map[y][x].dependencies) dependency.reverse.hasChanged = true;
+        propagateThroughTiles(x, y, map);
+    }
+};
+console.log('empty map:');
+printMap(map);
 // manually collapse a few tiles for testing purposes
 collapse(1, 1, tiles[0]);
 collapse(3, 1, tiles[1]);
@@ -206,10 +219,25 @@ collapse(2, 2, tiles[3]);
 collapse(4, 0, tiles[7]);
 collapse(0, 1, tiles[6]);
 
+console.log('map after manual collapses:');
 printMap(map);
 
-console.time('calculateEntropy');
-calculateEntropy(map);
-console.timeEnd('calculateEntropy');
+console.time('time for full collapse');
 
+while (true) {
+    const mapTiles = map
+        .flat()
+        .filter((tile) => !tile.collapsed)
+        .sort((a, b) => a.possibilities.length - b.possibilities.length);
+
+    if (mapTiles.length === 0) break;
+    const tileToCollapse = mapTiles[0];
+    collapse(
+        tileToCollapse.x,
+        tileToCollapse.y,
+        tileToCollapse.possibilities[(Math.random() * tileToCollapse.possibilities.length) | 0]
+    );
+}
+console.timeEnd('time for full collapse');
+console.log('map after full collapse:');
 printMap(map);
