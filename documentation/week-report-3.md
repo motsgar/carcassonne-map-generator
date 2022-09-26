@@ -12,3 +12,7 @@ tile with the smallest number of possible placements/entropy is collapsed
 first. I will also try to implement a way to visualize the map generation in
 the graphical UI by finding all possible tiles from somewhere as a image and
 then drawing them on the in the current state of the map.
+
+Without taking into account what I have done on sunday I have spent about 8
+hours on this project this week. If I count the time I spent on sunday I have
+spent about 15 hours this week.
