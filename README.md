@@ -1,5 +1,7 @@
 # Carcassonne map generator
 
+Project is available at [https://carcassonne.motsgar.fi](https://carcassonne.motsgar.fi)
+
 ## Documents
 
 #### Week reports
