@@ -1,0 +1,7 @@
+version: '3'
+services:
+  carcassonne-map-generator:
+    build: ./
+    container_name: carcassonne-map-generator
+    ports:
+      - 8080:80
