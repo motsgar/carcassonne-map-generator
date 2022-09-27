@@ -18,11 +18,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+
       - uses: actions/setup-node@v3
         with:
           node-version: 16
+
       - name: Version Check
         id: check
         uses: EndBug/version-check@v2.1.0
@@ -45,10 +45,6 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Log tags
-        if: steps.check.outputs.changed == 'true'
-        run: 'echo ${{ steps.meta.outputs.version }}'
 
       - name: Build and push Docker image
         if: steps.check.outputs.changed == 'true'
