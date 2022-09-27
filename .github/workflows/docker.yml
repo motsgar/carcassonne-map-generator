@@ -56,5 +56,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: latest , ${{ steps.check.outputs.version }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest , ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.check.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
