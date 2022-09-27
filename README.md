@@ -11,3 +11,4 @@
 #### Other documents
 
 -   [Definition document](./documentation/definition-document.md)
+-   [Testing document](./documentation/testing-document.md)
