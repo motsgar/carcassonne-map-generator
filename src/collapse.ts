@@ -197,35 +197,22 @@ const collapse = (x: number, y: number, tile: Tile): void => {
         propagateThroughTiles(x, y, map);
     }
 };
-console.log('empty map:');
-printMap(map);
-// manually collapse a few tiles for testing purposes
-collapse(1, 1, tiles[0]);
-collapse(3, 1, tiles[1]);
-collapse(5, 1, tiles[2]);
-collapse(2, 2, tiles[3]);
-collapse(4, 0, tiles[7]);
-collapse(0, 1, tiles[6]);
 
-console.log('map after manual collapses:');
-printMap(map);
+const fullCollapse = (): void => {
+    while (true) {
+        const mapTiles = map
+            .flat()
+            .filter((tile) => !tile.collapsed)
+            .sort((a, b) => a.possibilities.length - b.possibilities.length);
 
-console.time('time for full collapse');
+        if (mapTiles.length === 0) break;
+        const tileToCollapse = mapTiles[0];
+        collapse(
+            tileToCollapse.x,
+            tileToCollapse.y,
+            tileToCollapse.possibilities[(Math.random() * tileToCollapse.possibilities.length) | 0]
+        );
+    }
+};
 
-while (true) {
-    const mapTiles = map
-        .flat()
-        .filter((tile) => !tile.collapsed)
-        .sort((a, b) => a.possibilities.length - b.possibilities.length);
-
-    if (mapTiles.length === 0) break;
-    const tileToCollapse = mapTiles[0];
-    collapse(
-        tileToCollapse.x,
-        tileToCollapse.y,
-        tileToCollapse.possibilities[(Math.random() * tileToCollapse.possibilities.length) | 0]
-    );
-}
-console.timeEnd('time for full collapse');
-console.log('map after full collapse:');
-printMap(map);
+export { collapse, fullCollapse, printMap, tiles, map };
