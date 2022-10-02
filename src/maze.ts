@@ -1,6 +1,7 @@
 const mazeWidth = 30;
 const mazeHeight = 20;
-const mazePathProcentage = 0.7;
+const mazePathProcentage = 0.5;
+const randomWallRemoveProcentage = 0.4;
 
 enum Direction {
     Up,
@@ -33,12 +34,6 @@ const maze: MazeCell[][] = Array.from(Array(mazeHeight), () =>
             right: { open: false },
             bottom: { open: false },
             left: { open: false },
-            /*
-            top: { open: Math.random() < 0.5 },
-            right: { open: Math.random() < 0.5 },
-            bottom: { open: Math.random() < 0.5 },
-            left: { open: Math.random() < 0.5 },
-            */
         },
     }))
 );
@@ -166,66 +161,91 @@ const printMaze = (): void => {
     console.log(outputString);
 };
 
-maze[(Math.random() * mazeHeight) | 0][(Math.random() * mazeWidth) | 0].isMaze = true;
+const createMaze = (): void => {
+    // randomly pick first cell to be part of maze
+    maze[(Math.random() * mazeHeight) | 0][(Math.random() * mazeWidth) | 0].isMaze = true;
 
-let nonMazeTiles = allTiles.slice();
-
-while (true) {
-    nonMazeTiles = nonMazeTiles.filter((tile) => !tile.isMaze);
-    if (nonMazeTiles.length < allTiles.length * (1 - mazePathProcentage)) break;
-
-    const startTile = nonMazeTiles[(Math.random() * nonMazeTiles.length) | 0];
-    let currentMazeTile = startTile;
+    let nonMazeTiles = allTiles.slice();
 
     while (true) {
-        if (currentMazeTile.isMaze) break;
-        const possibleDirections = [];
-        if (currentMazeTile.y > 0) possibleDirections.push(Direction.Up);
-        if (currentMazeTile.x < mazeWidth - 1) possibleDirections.push(Direction.Right);
-        if (currentMazeTile.y < mazeHeight - 1) possibleDirections.push(Direction.Down);
-        if (currentMazeTile.x > 0) possibleDirections.push(Direction.Left);
-        currentMazeTile.direction = possibleDirections[(Math.random() * possibleDirections.length) | 0];
-        switch (currentMazeTile.direction) {
-            case Direction.Up:
-                currentMazeTile = maze[currentMazeTile.y - 1][currentMazeTile.x];
-                break;
-            case Direction.Right:
-                currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x + 1];
-                break;
-            case Direction.Down:
-                currentMazeTile = maze[currentMazeTile.y + 1][currentMazeTile.x];
-                break;
-            case Direction.Left:
-                currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x - 1];
-                break;
+        nonMazeTiles = nonMazeTiles.filter((tile) => !tile.isMaze);
+        if (nonMazeTiles.length < allTiles.length * (1 - mazePathProcentage) || nonMazeTiles.length === 0) break;
+
+        const startTile = nonMazeTiles[(Math.random() * nonMazeTiles.length) | 0];
+        let currentMazeTile = startTile;
+
+        while (true) {
+            if (currentMazeTile.isMaze) break;
+            const possibleDirections = [];
+            if (currentMazeTile.y > 0) possibleDirections.push(Direction.Up);
+            if (currentMazeTile.x < mazeWidth - 1) possibleDirections.push(Direction.Right);
+            if (currentMazeTile.y < mazeHeight - 1) possibleDirections.push(Direction.Down);
+            if (currentMazeTile.x > 0) possibleDirections.push(Direction.Left);
+            currentMazeTile.direction = possibleDirections[(Math.random() * possibleDirections.length) | 0];
+            switch (currentMazeTile.direction) {
+                case Direction.Up:
+                    currentMazeTile = maze[currentMazeTile.y - 1][currentMazeTile.x];
+                    break;
+                case Direction.Right:
+                    currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x + 1];
+                    break;
+                case Direction.Down:
+                    currentMazeTile = maze[currentMazeTile.y + 1][currentMazeTile.x];
+                    break;
+                case Direction.Left:
+                    currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x - 1];
+                    break;
+            }
+        }
+        currentMazeTile = startTile;
+
+        while (true) {
+            if (currentMazeTile.isMaze) break;
+
+            currentMazeTile.isMaze = true;
+
+            switch (currentMazeTile.direction) {
+                case Direction.Up:
+                    currentMazeTile.walls.top.open = true;
+                    currentMazeTile = maze[currentMazeTile.y - 1][currentMazeTile.x];
+                    break;
+                case Direction.Right:
+                    currentMazeTile.walls.right.open = true;
+                    currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x + 1];
+                    break;
+                case Direction.Down:
+                    currentMazeTile.walls.bottom.open = true;
+                    currentMazeTile = maze[currentMazeTile.y + 1][currentMazeTile.x];
+                    break;
+                case Direction.Left:
+                    currentMazeTile.walls.left.open = true;
+                    currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x - 1];
+                    break;
+            }
         }
     }
-    currentMazeTile = startTile;
 
-    while (true) {
-        if (currentMazeTile.isMaze) break;
-
-        currentMazeTile.isMaze = true;
-
-        switch (currentMazeTile.direction) {
-            case Direction.Up:
-                currentMazeTile.walls.top.open = true;
-                currentMazeTile = maze[currentMazeTile.y - 1][currentMazeTile.x];
-                break;
-            case Direction.Right:
-                currentMazeTile.walls.right.open = true;
-                currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x + 1];
-                break;
-            case Direction.Down:
-                currentMazeTile.walls.bottom.open = true;
-                currentMazeTile = maze[currentMazeTile.y + 1][currentMazeTile.x];
-                break;
-            case Direction.Left:
-                currentMazeTile.walls.left.open = true;
-                currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x - 1];
-                break;
+    // randomly remove randomWallRemoveProcentage of the walls that connect two maze tiles
+    for (let y = 0; y < mazeHeight; y++) {
+        for (let x = 0; x < mazeWidth; x++) {
+            if (
+                y < mazeHeight - 1 &&
+                maze[y][x].isMaze &&
+                maze[y + 1][x].isMaze &&
+                Math.random() < randomWallRemoveProcentage
+            )
+                maze[y][x].walls.bottom.open = true;
+            if (
+                x < mazeWidth - 1 &&
+                maze[y][x].isMaze &&
+                maze[y][x + 1].isMaze &&
+                Math.random() < randomWallRemoveProcentage
+            )
+                maze[y][x].walls.right.open = true;
         }
     }
-}
+};
+
+createMaze();
 
 printMaze();
