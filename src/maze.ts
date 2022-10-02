@@ -1,6 +1,6 @@
-const mazeWidth = 10;
-const mazeHeight = 6;
-const mazePathProcentage = 0.6;
+const mazeWidth = 30;
+const mazeHeight = 20;
+const mazePathProcentage = 0.7;
 
 enum Direction {
     Up,
@@ -13,6 +13,7 @@ type MazeCell = {
     x: number;
     y: number;
     direction: Direction;
+    isMaze: boolean;
     walls: {
         top: { open: boolean };
         right: { open: boolean };
@@ -25,22 +26,24 @@ const maze: MazeCell[][] = Array.from(Array(mazeHeight), () =>
     new Array(mazeWidth).fill(undefined).map(() => ({
         x: 0,
         y: 0,
-        visited: false,
+        isMaze: false,
         direction: Direction.Up,
         walls: {
-            /*
             top: { open: false },
             right: { open: false },
             bottom: { open: false },
             left: { open: false },
-            */
+            /*
             top: { open: Math.random() < 0.5 },
             right: { open: Math.random() < 0.5 },
             bottom: { open: Math.random() < 0.5 },
             left: { open: Math.random() < 0.5 },
+            */
         },
     }))
 );
+
+const allTiles = maze.flat();
 
 // initialize maze
 for (let y = 0; y < mazeHeight; y++) {
@@ -81,7 +84,8 @@ const printMaze = (): void => {
         for (let i = 0; i < 3; i++) {
             outputString += '┃';
             for (let x = 0; x < mazeWidth; x++) {
-                outputString += '      ';
+                if (i === 1) outputString += maze[y][x].isMaze ? '      ' : '  XX  ';
+                else outputString += '      ';
                 if (maze[y][x].walls.right.open && x < mazeWidth - 1) outputString += ' ';
                 else outputString += '┃';
             }
@@ -161,5 +165,67 @@ const printMaze = (): void => {
     outputString += '━━━━━━┛\n';
     console.log(outputString);
 };
+
+maze[(Math.random() * mazeHeight) | 0][(Math.random() * mazeWidth) | 0].isMaze = true;
+
+let nonMazeTiles = allTiles.slice();
+
+while (true) {
+    nonMazeTiles = nonMazeTiles.filter((tile) => !tile.isMaze);
+    if (nonMazeTiles.length < allTiles.length * (1 - mazePathProcentage)) break;
+
+    const startTile = nonMazeTiles[(Math.random() * nonMazeTiles.length) | 0];
+    let currentMazeTile = startTile;
+
+    while (true) {
+        if (currentMazeTile.isMaze) break;
+        const possibleDirections = [];
+        if (currentMazeTile.y > 0) possibleDirections.push(Direction.Up);
+        if (currentMazeTile.x < mazeWidth - 1) possibleDirections.push(Direction.Right);
+        if (currentMazeTile.y < mazeHeight - 1) possibleDirections.push(Direction.Down);
+        if (currentMazeTile.x > 0) possibleDirections.push(Direction.Left);
+        currentMazeTile.direction = possibleDirections[(Math.random() * possibleDirections.length) | 0];
+        switch (currentMazeTile.direction) {
+            case Direction.Up:
+                currentMazeTile = maze[currentMazeTile.y - 1][currentMazeTile.x];
+                break;
+            case Direction.Right:
+                currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x + 1];
+                break;
+            case Direction.Down:
+                currentMazeTile = maze[currentMazeTile.y + 1][currentMazeTile.x];
+                break;
+            case Direction.Left:
+                currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x - 1];
+                break;
+        }
+    }
+    currentMazeTile = startTile;
+
+    while (true) {
+        if (currentMazeTile.isMaze) break;
+
+        currentMazeTile.isMaze = true;
+
+        switch (currentMazeTile.direction) {
+            case Direction.Up:
+                currentMazeTile.walls.top.open = true;
+                currentMazeTile = maze[currentMazeTile.y - 1][currentMazeTile.x];
+                break;
+            case Direction.Right:
+                currentMazeTile.walls.right.open = true;
+                currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x + 1];
+                break;
+            case Direction.Down:
+                currentMazeTile.walls.bottom.open = true;
+                currentMazeTile = maze[currentMazeTile.y + 1][currentMazeTile.x];
+                break;
+            case Direction.Left:
+                currentMazeTile.walls.left.open = true;
+                currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x - 1];
+                break;
+        }
+    }
+}
 
 printMaze();
