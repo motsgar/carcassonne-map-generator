@@ -1,5 +1,7 @@
 import './appCanvas';
 import { collapse, fullCollapse, printMap, tiles, map } from './collapse';
+import './maze';
+/*
 console.log('empty map:');
 printMap(map);
 // manually collapse a few tiles for testing purposes
@@ -19,3 +21,4 @@ fullCollapse();
 console.timeEnd('time for full collapse');
 console.log('map after full collapse:');
 printMap(map);
+*/
