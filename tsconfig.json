@@ -5,9 +5,10 @@
         "noImplicitAny": true,
         "module": "es6",
         "target": "ESNext",
-        "allowJs": true,
+        "allowJs": false,
         "moduleResolution": "node",
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "strict": true
     },
     "exclude": ["**/*.test.ts", "node_modules"]
 }
