@@ -34,6 +34,27 @@ const limitMapToMaze = (map: Map, maze: Maze, options: MazeLimitOptions): void =
                 }
                 continue;
             }
+
+            limitTilePossibilities(
+                map,
+                x,
+                y,
+                mapCell.possibilities.filter((tile) => {
+                    if (mazeCell.walls.top.open) {
+                        if (tile.top !== options.sideType) return false;
+                    } else if (!options.allowSideConnections && tile.top === options.sideType) return false;
+                    if (mazeCell.walls.right.open) {
+                        if (tile.right !== options.sideType) return false;
+                    } else if (!options.allowSideConnections && tile.right === options.sideType) return false;
+                    if (mazeCell.walls.bottom.open) {
+                        if (tile.bottom !== options.sideType) return false;
+                    } else if (!options.allowSideConnections && tile.bottom === options.sideType) return false;
+                    if (mazeCell.walls.left.open) {
+                        if (tile.left !== options.sideType) return false;
+                    } else if (!options.allowSideConnections && tile.left === options.sideType) return false;
+                    return true;
+                })
+            );
         }
     }
 };

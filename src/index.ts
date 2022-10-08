@@ -24,7 +24,7 @@ console.time('time for maze limiting');
 limitMapToMaze(map, maze, {
     sideType: Side.Road,
     allowSideConnections: false,
-    allowTilesOutsideWithSide: false,
+    allowTilesOutsideWithSide: true,
 });
 console.timeEnd('time for maze limiting');
 

@@ -50,12 +50,21 @@ export type CallbackEvent = (event: Event) => void;
 
 // temporarily manually create list of possible tiles
 const tiles: Tile[] = [];
+/*
 tiles.push({ top: Side.Field, right: Side.City, bottom: Side.City, left: Side.Road });
 tiles.push({ top: Side.Field, right: Side.Field, bottom: Side.Field, left: Side.Field });
 tiles.push({ top: Side.City, right: Side.Field, bottom: Side.Road, left: Side.Field });
 tiles.push({ top: Side.Road, right: Side.Road, bottom: Side.Road, left: Side.Field });
 tiles.push({ top: Side.City, right: Side.Field, bottom: Side.Field, left: Side.Road });
 tiles.push({ top: Side.City, right: Side.City, bottom: Side.Field, left: Side.City });
+*/
+// all possible tiles that consist of roads and fields
+tiles.push({ top: Side.Road, right: Side.Road, bottom: Side.Road, left: Side.Road });
+tiles.push({ top: Side.Road, right: Side.Road, bottom: Side.Road, left: Side.Field });
+tiles.push({ top: Side.Road, right: Side.Road, bottom: Side.Field, left: Side.Field });
+tiles.push({ top: Side.Road, right: Side.Field, bottom: Side.Road, left: Side.Field });
+tiles.push({ top: Side.Road, right: Side.Field, bottom: Side.Field, left: Side.Field });
+tiles.push({ top: Side.Field, right: Side.Field, bottom: Side.Field, left: Side.Field });
 
 // create all possible orientations of a tile
 const originalTilesLength = tiles.length;
@@ -252,6 +261,7 @@ const fullCollapse = (map: Map, callbackEvent?: CallbackEvent): void => {
 
         if (mapTiles.length === 0) break;
         const tileToCollapse = mapTiles[0];
+        if (tileToCollapse.possibilities.length === 0) throw new Error('No possible tiles left');
         collapse(
             map,
             tileToCollapse.x,
