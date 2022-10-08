@@ -10,6 +10,7 @@ Project is available at [https://carcassonne.motsgar.fi](https://carcassonne.mot
 -   [Week report 2](./documentation/week-report-2.md)
 -   [Week report 3](./documentation/week-report-3.md)
 -   [Week report 4](./documentation/week-report-4.md)
+-   [Week report 5](./documentation/week-report-5.md)
 
 #### Other documents
 
