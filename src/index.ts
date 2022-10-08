@@ -3,11 +3,14 @@ import { collapse, fullCollapse, printMap, tiles, createMap, Side } from './coll
 import { limitMapToMaze } from './utils';
 import { createMaze, processMaze, printMaze } from './maze';
 
-const maze = createMaze(10, 6);
+const width = 10;
+const height = 6;
+
+const maze = createMaze(width, height);
 processMaze(maze);
 printMaze(maze);
 
-const map = createMap(10, 6);
+const map = createMap(width, height);
 console.log('empty map:');
 printMap(map);
 
