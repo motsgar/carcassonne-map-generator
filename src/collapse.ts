@@ -1,4 +1,4 @@
-enum Side {
+export enum Side {
     Startpeice,
     Water,
     Field,
@@ -6,21 +6,21 @@ enum Side {
     City,
 }
 
-type Tile = {
+export type Tile = {
     top: Side;
     right: Side;
     bottom: Side;
     left: Side;
 };
 
-type Dependency = {
+export type Dependency = {
     reverse: Dependency;
     hasChanged: boolean;
     x: number;
     y: number;
 };
 
-type MapTile = {
+export type MapCell = {
     x: number;
     y: number;
     possibilities: Tile[];
@@ -34,19 +34,19 @@ type MapTile = {
     };
 };
 
-type Map = {
+export type Map = {
     width: number;
     height: number;
-    tiles: MapTile[][];
+    tiles: MapCell[][];
 };
 
-type Event = {
+export type Event = {
     type: 'event1' | 'event2';
     x: number;
     y: number;
 };
 
-type CallbackEvent = (event: Event) => void;
+export type CallbackEvent = (event: Event) => void;
 
 // temporarily manually create list of possible tiles
 const tiles: Tile[] = [];
@@ -55,6 +55,7 @@ tiles.push({ top: Side.Field, right: Side.Field, bottom: Side.Field, left: Side.
 tiles.push({ top: Side.City, right: Side.Field, bottom: Side.Road, left: Side.Field });
 tiles.push({ top: Side.Road, right: Side.Road, bottom: Side.Road, left: Side.Field });
 tiles.push({ top: Side.City, right: Side.Field, bottom: Side.Field, left: Side.Road });
+tiles.push({ top: Side.City, right: Side.City, bottom: Side.Field, left: Side.City });
 
 // create all possible orientations of a tile
 const originalTilesLength = tiles.length;
@@ -166,7 +167,7 @@ const getPossibleTiles = (
     map: Map,
     x: number,
     y: number,
-    tileWithPossibilities: MapTile,
+    tileWithPossibilities: MapCell,
     callbackEvent?: CallbackEvent
 ): Tile[] => {
     const filteredTiles = [];
@@ -209,22 +210,37 @@ const propagateThroughTiles = (map: Map, x: number, y: number, callbackEvent?: C
     }
 };
 
+// this function doesn't check if the limitation leaves a tile without possibilities
+const limitTilePossibilities = (
+    map: Map,
+    x: number,
+    y: number,
+    tileList: Tile[],
+    callbackEvent?: CallbackEvent
+): void => {
+    const possibleTiles = map.tiles[y][x].possibilities;
+
+    // remove all tiles that can't be in this position
+    const filteredTileList = tileList.filter((tile) => possibleTiles.find((t) => t === tile));
+
+    // check if the tile can be collapsed to the given tile
+    map.tiles[y][x].possibilities = filteredTileList;
+    map.tiles[y][x].sides = {
+        top: new Set(filteredTileList.map((tile) => tile.top)),
+        right: new Set(filteredTileList.map((tile) => tile.right)),
+        bottom: new Set(filteredTileList.map((tile) => tile.bottom)),
+        left: new Set(filteredTileList.map((tile) => tile.left)),
+    };
+    if (filteredTileList.length === 1) map.tiles[y][x].collapsed = true;
+
+    for (const dependency of map.tiles[y][x].dependencies) dependency.reverse.hasChanged = true;
+
+    propagateThroughTiles(map, x, y, callbackEvent);
+};
+
 // collapse a single coordinate to a specific tile
 const collapse = (map: Map, x: number, y: number, tile: Tile, callbackEvent?: CallbackEvent): void => {
-    const possibleTiles = map.tiles[y][x].possibilities;
-    // check if the tile can be collapsed to the given tile
-    if (possibleTiles.find((t) => t === tile)) {
-        map.tiles[y][x].possibilities = [tile];
-        map.tiles[y][x].sides = {
-            top: new Set([tile.top]),
-            right: new Set([tile.right]),
-            bottom: new Set([tile.bottom]),
-            left: new Set([tile.left]),
-        };
-        map.tiles[y][x].collapsed = true;
-        for (const dependency of map.tiles[y][x].dependencies) dependency.reverse.hasChanged = true;
-        propagateThroughTiles(map, x, y, callbackEvent);
-    }
+    limitTilePossibilities(map, x, y, [tile], callbackEvent);
 };
 
 const fullCollapse = (map: Map, callbackEvent?: CallbackEvent): void => {
@@ -247,4 +263,4 @@ const fullCollapse = (map: Map, callbackEvent?: CallbackEvent): void => {
     callbackEvent && callbackEvent({ type: 'event1', x: -1, y: -1 });
 };
 
-export { collapse, fullCollapse, printMap, tiles, createMap };
+export { collapse, limitTilePossibilities, fullCollapse, printMap, tiles, createMap };

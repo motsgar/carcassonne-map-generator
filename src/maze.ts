@@ -1,19 +1,17 @@
-const mazeWidth = 30;
-const mazeHeight = 20;
 const mazePathProcentage = 0.5;
 const randomWallRemoveProcentage = 0.4;
 
-enum Direction {
+export enum Direction {
     Up,
     Right,
     Down,
     Left,
 }
 
-type MazeCell = {
+export type MazeCell = {
     x: number;
     y: number;
-    direction: Direction;
+    solverDirection: Direction;
     isMaze: boolean;
     walls: {
         top: { open: boolean };
@@ -23,153 +21,166 @@ type MazeCell = {
     };
 };
 
-const maze: MazeCell[][] = Array.from(Array(mazeHeight), () =>
-    new Array(mazeWidth).fill(undefined).map(() => ({
-        x: 0,
-        y: 0,
-        isMaze: false,
-        direction: Direction.Up,
-        walls: {
-            top: { open: false },
-            right: { open: false },
-            bottom: { open: false },
-            left: { open: false },
-        },
-    }))
-);
+export type Maze = {
+    width: number;
+    height: number;
+    tiles: MazeCell[][];
+};
 
-const allTiles = maze.flat();
+const createMaze = (width: number, height: number): Maze => {
+    const mazeCells: MazeCell[][] = Array.from(Array(height), () =>
+        new Array(width).fill(undefined).map(() => ({
+            x: 0,
+            y: 0,
+            isMaze: false,
+            solverDirection: Direction.Up,
+            walls: {
+                top: { open: false },
+                right: { open: false },
+                bottom: { open: false },
+                left: { open: false },
+            },
+        }))
+    );
 
-// initialize maze
-for (let y = 0; y < mazeHeight; y++) {
-    for (let x = 0; x < mazeWidth; x++) {
-        maze[y][x].x = x;
-        maze[y][x].y = y;
-    }
-}
-
-// fill maze with walls that are referenced by the maze cells
-for (let y = 0; y < mazeHeight; y++) {
-    for (let x = 0; x < mazeWidth; x++) {
-        if (y > 0) {
-            maze[y][x].walls.top = maze[y - 1][x].walls.bottom;
-        }
-        if (x < mazeWidth - 1) {
-            maze[y][x].walls.right = maze[y][x + 1].walls.left;
-        }
-        if (y < mazeHeight - 1) {
-            maze[y][x].walls.bottom = maze[y + 1][x].walls.top;
-        }
-        if (x > 0) {
-            maze[y][x].walls.left = maze[y][x - 1].walls.right;
+    // set x and y values for each cell
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            mazeCells[y][x].x = x;
+            mazeCells[y][x].y = y;
         }
     }
-}
 
-const printMaze = (): void => {
+    // create reference based walls so the up wall of one cell references to the same object as the down wall of the cell above it
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            if (y > 0) {
+                mazeCells[y][x].walls.top = mazeCells[y - 1][x].walls.bottom;
+            }
+            if (x < width - 1) {
+                mazeCells[y][x].walls.right = mazeCells[y][x + 1].walls.left;
+            }
+            if (y < height - 1) {
+                mazeCells[y][x].walls.bottom = mazeCells[y + 1][x].walls.top;
+            }
+            if (x > 0) {
+                mazeCells[y][x].walls.left = mazeCells[y][x - 1].walls.right;
+            }
+        }
+    }
+
+    return {
+        width,
+        height,
+        tiles: mazeCells,
+    };
+};
+
+const printMaze = (maze: Maze): void => {
     let outputString = '';
     outputString += '┏';
-    for (let x = 0; x < mazeWidth - 1; x++) {
+    for (let x = 0; x < maze.width - 1; x++) {
         outputString += '━━━━━━';
-        if (maze[0][x].walls.right.open) outputString += '━';
+        if (maze.tiles[0][x].walls.right.open) outputString += '━';
         else outputString += '┳';
     }
     outputString += '━━━━━━┓\n';
-    for (let y = 0; y < mazeHeight; y++) {
+    for (let y = 0; y < maze.height; y++) {
         for (let i = 0; i < 3; i++) {
             outputString += '┃';
-            for (let x = 0; x < mazeWidth; x++) {
-                if (i === 1) outputString += maze[y][x].isMaze ? '      ' : '  XX  ';
+            for (let x = 0; x < maze.width; x++) {
+                if (i === 1) outputString += maze.tiles[y][x].isMaze ? '      ' : '  XX  ';
                 else outputString += '      ';
-                if (maze[y][x].walls.right.open && x < mazeWidth - 1) outputString += ' ';
+                if (maze.tiles[y][x].walls.right.open && x < maze.width - 1) outputString += ' ';
                 else outputString += '┃';
             }
             outputString += '\n';
         }
 
-        if (y < mazeHeight - 1) {
-            if (maze[y][0].walls.bottom.open) outputString += '┃';
+        if (y < maze.height - 1) {
+            if (maze.tiles[y][0].walls.bottom.open) outputString += '┃';
             else outputString += '┣';
-            for (let x = 0; x < mazeWidth; x++) {
-                if (maze[y][x].walls.bottom.open) outputString += '      ';
+            for (let x = 0; x < maze.width; x++) {
+                if (maze.tiles[y][x].walls.bottom.open) outputString += '      ';
                 else outputString += '━━━━━━';
-                if (x < mazeWidth - 1) {
-                    if (maze[y][x].walls.bottom.open) {
+                if (x < maze.width - 1) {
+                    if (maze.tiles[y][x].walls.bottom.open) {
                         // left empty
-                        if (maze[y][x].walls.right.open) {
+                        if (maze.tiles[y][x].walls.right.open) {
                             // top empty
-                            if (maze[y][x + 1].walls.bottom.open) {
+                            if (maze.tiles[y][x + 1].walls.bottom.open) {
                                 // right empty
-                                if (maze[y + 1][x].walls.right.open) outputString += '▪'; // bottom empty
+                                if (maze.tiles[y + 1][x].walls.right.open) outputString += '▪'; // bottom empty
                                 else outputString += '╻'; // bottom wall
                             } else {
                                 // right wall
-                                if (maze[y + 1][x].walls.right.open) outputString += '╺'; // bottom empty
+                                if (maze.tiles[y + 1][x].walls.right.open) outputString += '╺'; // bottom empty
                                 else outputString += '┏'; // bottom wall
                             }
                         } else {
                             // top wall
-                            if (maze[y][x + 1].walls.bottom.open) {
+                            if (maze.tiles[y][x + 1].walls.bottom.open) {
                                 // right empty
-                                if (maze[y + 1][x].walls.right.open) outputString += '╹'; // bottom empty
+                                if (maze.tiles[y + 1][x].walls.right.open) outputString += '╹'; // bottom empty
                                 else outputString += '┃'; // bottom wall
                             } else {
                                 // right wall
-                                if (maze[y + 1][x].walls.right.open) outputString += '┗'; // bottom empty
+                                if (maze.tiles[y + 1][x].walls.right.open) outputString += '┗'; // bottom empty
                                 else outputString += '┣'; // bottom wall
                             }
                         }
                     } else {
                         // left wall
-                        if (maze[y][x].walls.right.open) {
+                        if (maze.tiles[y][x].walls.right.open) {
                             // top empty
-                            if (maze[y][x + 1].walls.bottom.open) {
+                            if (maze.tiles[y][x + 1].walls.bottom.open) {
                                 // right empty
-                                if (maze[y + 1][x].walls.right.open) outputString += '╸'; // bottom empty
+                                if (maze.tiles[y + 1][x].walls.right.open) outputString += '╸'; // bottom empty
                                 else outputString += '┓'; // bottom wall
                             } else {
                                 // right wall
-                                if (maze[y + 1][x].walls.right.open) outputString += '━'; // bottom empty
+                                if (maze.tiles[y + 1][x].walls.right.open) outputString += '━'; // bottom empty
                                 else outputString += '┳'; // bottom wall
                             }
                         } else {
                             // top wall
-                            if (maze[y][x + 1].walls.bottom.open) {
+                            if (maze.tiles[y][x + 1].walls.bottom.open) {
                                 // right empty
-                                if (maze[y + 1][x].walls.right.open) outputString += '┛'; // bottom empty
+                                if (maze.tiles[y + 1][x].walls.right.open) outputString += '┛'; // bottom empty
                                 else outputString += '┫'; // bottom wall
                             } else {
                                 // right wall
-                                if (maze[y + 1][x].walls.right.open) outputString += '┻'; // bottom empty
+                                if (maze.tiles[y + 1][x].walls.right.open) outputString += '┻'; // bottom empty
                                 else outputString += '╋'; // bottom wall
                             }
                         }
                     }
-                } else if (maze[y][x].walls.bottom.open) outputString += '┃';
+                } else if (maze.tiles[y][x].walls.bottom.open) outputString += '┃';
                 else outputString += '┫';
             }
             outputString += '\n';
         }
     }
     outputString += '┗';
-    for (let x = 0; x < mazeWidth - 1; x++) {
+    for (let x = 0; x < maze.width - 1; x++) {
         outputString += '━━━━━━';
-        if (maze[mazeHeight - 1][x].walls.right.open) outputString += '━';
+        if (maze.tiles[maze.height - 1][x].walls.right.open) outputString += '━';
         else outputString += '┻';
     }
     outputString += '━━━━━━┛\n';
     console.log(outputString);
 };
 
-const createMaze = (): void => {
+const processMaze = (maze: Maze): void => {
     // randomly pick first cell to be part of maze
-    maze[(Math.random() * mazeHeight) | 0][(Math.random() * mazeWidth) | 0].isMaze = true;
+    maze.tiles[(Math.random() * maze.height) | 0][(Math.random() * maze.width) | 0].isMaze = true;
 
-    let nonMazeTiles = allTiles.slice();
+    let nonMazeTiles = maze.tiles.flat().slice();
 
     while (true) {
         nonMazeTiles = nonMazeTiles.filter((tile) => !tile.isMaze);
-        if (nonMazeTiles.length < allTiles.length * (1 - mazePathProcentage) || nonMazeTiles.length === 0) break;
+        if (nonMazeTiles.length < maze.height * maze.width * (1 - mazePathProcentage) || nonMazeTiles.length === 0)
+            break;
 
         const startTile = nonMazeTiles[(Math.random() * nonMazeTiles.length) | 0];
         let currentMazeTile = startTile;
@@ -178,22 +189,22 @@ const createMaze = (): void => {
             if (currentMazeTile.isMaze) break;
             const possibleDirections = [];
             if (currentMazeTile.y > 0) possibleDirections.push(Direction.Up);
-            if (currentMazeTile.x < mazeWidth - 1) possibleDirections.push(Direction.Right);
-            if (currentMazeTile.y < mazeHeight - 1) possibleDirections.push(Direction.Down);
+            if (currentMazeTile.x < maze.width - 1) possibleDirections.push(Direction.Right);
+            if (currentMazeTile.y < maze.height - 1) possibleDirections.push(Direction.Down);
             if (currentMazeTile.x > 0) possibleDirections.push(Direction.Left);
-            currentMazeTile.direction = possibleDirections[(Math.random() * possibleDirections.length) | 0];
-            switch (currentMazeTile.direction) {
+            currentMazeTile.solverDirection = possibleDirections[(Math.random() * possibleDirections.length) | 0];
+            switch (currentMazeTile.solverDirection) {
                 case Direction.Up:
-                    currentMazeTile = maze[currentMazeTile.y - 1][currentMazeTile.x];
+                    currentMazeTile = maze.tiles[currentMazeTile.y - 1][currentMazeTile.x];
                     break;
                 case Direction.Right:
-                    currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x + 1];
+                    currentMazeTile = maze.tiles[currentMazeTile.y][currentMazeTile.x + 1];
                     break;
                 case Direction.Down:
-                    currentMazeTile = maze[currentMazeTile.y + 1][currentMazeTile.x];
+                    currentMazeTile = maze.tiles[currentMazeTile.y + 1][currentMazeTile.x];
                     break;
                 case Direction.Left:
-                    currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x - 1];
+                    currentMazeTile = maze.tiles[currentMazeTile.y][currentMazeTile.x - 1];
                     break;
             }
         }
@@ -204,48 +215,46 @@ const createMaze = (): void => {
 
             currentMazeTile.isMaze = true;
 
-            switch (currentMazeTile.direction) {
+            switch (currentMazeTile.solverDirection) {
                 case Direction.Up:
                     currentMazeTile.walls.top.open = true;
-                    currentMazeTile = maze[currentMazeTile.y - 1][currentMazeTile.x];
+                    currentMazeTile = maze.tiles[currentMazeTile.y - 1][currentMazeTile.x];
                     break;
                 case Direction.Right:
                     currentMazeTile.walls.right.open = true;
-                    currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x + 1];
+                    currentMazeTile = maze.tiles[currentMazeTile.y][currentMazeTile.x + 1];
                     break;
                 case Direction.Down:
                     currentMazeTile.walls.bottom.open = true;
-                    currentMazeTile = maze[currentMazeTile.y + 1][currentMazeTile.x];
+                    currentMazeTile = maze.tiles[currentMazeTile.y + 1][currentMazeTile.x];
                     break;
                 case Direction.Left:
                     currentMazeTile.walls.left.open = true;
-                    currentMazeTile = maze[currentMazeTile.y][currentMazeTile.x - 1];
+                    currentMazeTile = maze.tiles[currentMazeTile.y][currentMazeTile.x - 1];
                     break;
             }
         }
     }
 
     // randomly remove randomWallRemoveProcentage of the walls that connect two maze tiles
-    for (let y = 0; y < mazeHeight; y++) {
-        for (let x = 0; x < mazeWidth; x++) {
+    for (let y = 0; y < maze.height; y++) {
+        for (let x = 0; x < maze.width; x++) {
             if (
-                y < mazeHeight - 1 &&
-                maze[y][x].isMaze &&
-                maze[y + 1][x].isMaze &&
+                y < maze.height - 1 &&
+                maze.tiles[y][x].isMaze &&
+                maze.tiles[y + 1][x].isMaze &&
                 Math.random() < randomWallRemoveProcentage
             )
-                maze[y][x].walls.bottom.open = true;
+                maze.tiles[y][x].walls.bottom.open = true;
             if (
-                x < mazeWidth - 1 &&
-                maze[y][x].isMaze &&
-                maze[y][x + 1].isMaze &&
+                x < maze.width - 1 &&
+                maze.tiles[y][x].isMaze &&
+                maze.tiles[y][x + 1].isMaze &&
                 Math.random() < randomWallRemoveProcentage
             )
-                maze[y][x].walls.right.open = true;
+                maze.tiles[y][x].walls.right.open = true;
         }
     }
 };
 
-createMaze();
-
-printMaze();
+export { createMaze, printMaze, processMaze };

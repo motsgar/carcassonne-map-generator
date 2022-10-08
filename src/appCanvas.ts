@@ -1,5 +1,5 @@
 const appCanvasElement = document.getElementById('app-canvas') as HTMLCanvasElement;
-const appCtx = appCanvasElement.getContext('2d');
+const appCtx = appCanvasElement.getContext('2d')!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
 
 let zoomLevel = 1;
 const zoomSpeed = 2000;
