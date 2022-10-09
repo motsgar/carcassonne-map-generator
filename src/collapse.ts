@@ -48,34 +48,7 @@ export type Event = {
 
 export type CallbackEvent = (event: Event) => void;
 
-// temporarily manually create list of possible tiles
-const tiles: Tile[] = [];
-/*
-tiles.push({ top: Side.Field, right: Side.City, bottom: Side.City, left: Side.Road });
-tiles.push({ top: Side.Field, right: Side.Field, bottom: Side.Field, left: Side.Field });
-tiles.push({ top: Side.City, right: Side.Field, bottom: Side.Road, left: Side.Field });
-tiles.push({ top: Side.Road, right: Side.Road, bottom: Side.Road, left: Side.Field });
-tiles.push({ top: Side.City, right: Side.Field, bottom: Side.Field, left: Side.Road });
-tiles.push({ top: Side.City, right: Side.City, bottom: Side.Field, left: Side.City });
-*/
-// all possible tiles that consist of roads and fields
-tiles.push({ top: Side.Road, right: Side.Road, bottom: Side.Road, left: Side.Road });
-tiles.push({ top: Side.Road, right: Side.Road, bottom: Side.Road, left: Side.Field });
-tiles.push({ top: Side.Road, right: Side.Road, bottom: Side.Field, left: Side.Field });
-tiles.push({ top: Side.Road, right: Side.Field, bottom: Side.Road, left: Side.Field });
-tiles.push({ top: Side.Road, right: Side.Field, bottom: Side.Field, left: Side.Field });
-tiles.push({ top: Side.Field, right: Side.Field, bottom: Side.Field, left: Side.Field });
-
-// create all possible orientations of a tile
-const originalTilesLength = tiles.length;
-for (let i = 0; i < originalTilesLength; i++) {
-    const tile = tiles[i];
-    tiles.push({ top: tile.left, right: tile.top, bottom: tile.right, left: tile.bottom });
-    tiles.push({ top: tile.bottom, right: tile.left, bottom: tile.top, left: tile.right });
-    tiles.push({ top: tile.right, right: tile.bottom, bottom: tile.left, left: tile.top });
-}
-
-const createMap = (width: number, height: number): Map => {
+const createMap = (width: number, height: number, tiles: Tile[]): Map => {
     // create 2d map of tiles and initialize every position with all possible tiles
     const map: Map = {
         tiles: Array.from(Array(height), () =>
@@ -273,4 +246,4 @@ const fullCollapse = (map: Map, callbackEvent?: CallbackEvent): void => {
     callbackEvent && callbackEvent({ type: 'event1', x: -1, y: -1 });
 };
 
-export { collapse, limitTilePossibilities, fullCollapse, printMap, tiles, createMap };
+export { collapse, limitTilePossibilities, fullCollapse, printMap, createMap };
