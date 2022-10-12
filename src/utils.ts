@@ -28,8 +28,6 @@ const tilemapSchema = zod
         tiles: zod.array(
             zod
                 .object({
-                    x: zod.number().int().nonnegative(),
-                    y: zod.number().int().nonnegative(),
                     top: zod.string(),
                     right: zod.string(),
                     bottom: zod.string(),
@@ -43,30 +41,13 @@ const tilemapSchema = zod
 const parseTilemapData = (tilemapData: unknown): TilemapData => {
     const parsedTilemapData = tilemapSchema.parse(tilemapData);
     const sideKeys = Object.values(Side).filter((e) => typeof e === 'string');
+
     return {
         width: parsedTilemapData.width,
         height: parsedTilemapData.height,
         tileSize: parsedTilemapData.tileSize,
         tiles: parsedTilemapData.tiles.map((tile, index) => {
             const zodIssues: zod.ZodIssue[] = [];
-            if (tile.x + parsedTilemapData.tileSize > parsedTilemapData.width)
-                zodIssues.push({
-                    message: 'Tile x position is outside of tilemap width',
-                    path: ['tiles', index, 'x'],
-                    code: 'too_big',
-                    type: 'number',
-                    maximum: parsedTilemapData.width - parsedTilemapData.tileSize,
-                    inclusive: true,
-                });
-            if (tile.y + parsedTilemapData.tileSize > parsedTilemapData.height)
-                zodIssues.push({
-                    message: 'Tile y position is outside of tilemap height',
-                    path: ['tiles', index, 'y'],
-                    code: 'too_big',
-                    type: 'number',
-                    maximum: parsedTilemapData.height - parsedTilemapData.tileSize,
-                    inclusive: true,
-                });
             if (!sideKeys.includes(tile.top))
                 zodIssues.push({
                     message: 'Tile top side is not a valid side',
@@ -102,8 +83,8 @@ const parseTilemapData = (tilemapData: unknown): TilemapData => {
             if (zodIssues.length > 0) throw new zod.ZodError(zodIssues);
 
             return {
-                x: tile.x,
-                y: tile.y,
+                x: index % parsedTilemapData.width,
+                y: Math.floor(index / parsedTilemapData.width),
                 top: Side[tile.top as keyof typeof Side],
                 right: Side[tile.right as keyof typeof Side],
                 bottom: Side[tile.bottom as keyof typeof Side],
@@ -116,7 +97,30 @@ const parseTilemapData = (tilemapData: unknown): TilemapData => {
 const createTilesFromTilemapData = (tilemapData: TilemapData): Tile[] => {
     const tiles: Tile[] = [];
     for (const tile of tilemapData.tiles) {
-        tiles.push(tile);
+        tiles.push({
+            top: tile.top,
+            right: tile.right,
+            bottom: tile.bottom,
+            left: tile.left,
+        });
+        tiles.push({
+            top: tile.right,
+            right: tile.bottom,
+            bottom: tile.left,
+            left: tile.top,
+        });
+        tiles.push({
+            top: tile.bottom,
+            right: tile.left,
+            bottom: tile.top,
+            left: tile.right,
+        });
+        tiles.push({
+            top: tile.left,
+            right: tile.top,
+            bottom: tile.right,
+            left: tile.bottom,
+        });
     }
     return tiles;
 };
