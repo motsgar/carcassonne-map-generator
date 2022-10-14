@@ -1,6 +1,6 @@
 import './appCanvas';
 import { fullCollapse, printMap, createMap, Side } from './collapse';
-import { createAllPossibleTiles, createTilesFromTilemapData, limitMapToMaze, parseTilemapData } from './utils';
+import { createTilesFromTilemapData, limitMapToMaze, parseTilemapData } from './utils';
 import { createMaze, processMaze, printMaze } from './maze';
 import { ZodError } from 'zod';
 
@@ -25,23 +25,23 @@ fetch('/defaultTilemap.json')
         console.time('processMaze');
         processMaze(maze);
         console.timeEnd('processMaze');
-        // printMaze(maze);
+        printMaze(maze);
 
         const map = createMap(width, height, tiles);
 
         console.log('empty map:');
-        // printMap(map);
+        printMap(map);
 
         console.time('time for maze limiting');
         limitMapToMaze(map, maze, {
             sideType: Side.Road,
             allowSideConnections: false,
-            allowTilesOutsideWithSide: true,
+            allowTilesOutsideWithSide: false,
         });
         console.timeEnd('time for maze limiting');
 
         console.log('map after maze limit:');
-        // printMap(map);
+        printMap(map);
 
         console.time('time for full collapse');
 
@@ -49,5 +49,5 @@ fetch('/defaultTilemap.json')
 
         console.timeEnd('time for full collapse');
         console.log('map after full collapse:');
-        // printMap(map);
+        printMap(map);
     });

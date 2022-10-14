@@ -302,15 +302,6 @@ const collapse = (
 const resetOldCellStates = (map: CarcassonneMap, oldCellStates: OldCellStates): void => {
     for (const [y, xMap] of oldCellStates) {
         for (const [x, cellState] of xMap) {
-            console.log(
-                'resetting',
-                x,
-                y,
-                'tiles left before',
-                cellState.possibleTiles.length,
-                'tiles left after',
-                map.cells[y][x].possibleTiles.length
-            );
             map.cells[y][x].possibleTiles = cellState.possibleTiles;
             map.cells[y][x].collapsed = cellState.collapsed;
             map.cells[y][x].sides = {
@@ -327,10 +318,16 @@ const fullCollapse = (map: CarcassonneMap, collapseEvent?: CollapseEventCallback
     let nonCollapsedTiles = map.cells.flat();
     const oldCellStates: OldCellStates[] = [];
 
+    let currentPriorityCell: MapCell | undefined = undefined;
+
     while (true) {
         nonCollapsedTiles = nonCollapsedTiles
             .filter((tile) => !tile.collapsed)
-            .sort((a, b) => a.possibleTiles.length - b.possibleTiles.length);
+            .sort((a, b) => {
+                if (a === currentPriorityCell) return -1;
+                if (b === currentPriorityCell) return 1;
+                return a.possibleTiles.length - b.possibleTiles.length;
+            });
 
         if (nonCollapsedTiles.length === 0) break;
 
@@ -349,20 +346,21 @@ const fullCollapse = (map: CarcassonneMap, collapseEvent?: CollapseEventCallback
                 collapseEvent
             );
 
-            oldCellStates.push(collapseResult.oldCellStates);
+            if (collapseResult.success) {
+                oldCellStates.push(collapseResult.oldCellStates);
 
-            if (collapseResult.success) break;
+                break;
+            }
 
             resetOldCellStates(map, collapseResult.oldCellStates);
             tileIndex++;
         }
         if (tileIndex === originalPossibilitiesLength) {
-            printMap(map);
-            console.log(tileToCollapse);
-            throw new Error('No tile could be collapsed, (' + originalPossibilitiesLength + ' tiles left)');
-        }
-        if (tileIndex > 0) {
-            console.log(`Tested collapsing ${tileIndex} tiles in (${tileToCollapse.x}, ${tileToCollapse.y})`);
+            currentPriorityCell = tileToCollapse;
+            const latestOldCellStates = oldCellStates.pop();
+            if (latestOldCellStates === undefined)
+                throw new Error('Impossible to collapse the map, no tiles left to collapse');
+            resetOldCellStates(map, latestOldCellStates);
         }
     }
 };
