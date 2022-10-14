@@ -1,4 +1,4 @@
-import { Map, Side, limitTilePossibilities, Tile } from './collapse';
+import { CarcassonneMap, Side, limitTilePossibilities, Tile } from './collapse';
 import { Maze } from './maze';
 import * as zod from 'zod';
 
@@ -139,12 +139,12 @@ const createAllPossibleTiles = (): Tile[] => {
     return tiles;
 };
 
-const limitMapToMaze = (map: Map, maze: Maze, options: MazeLimitOptions): void => {
+const limitMapToMaze = (map: CarcassonneMap, maze: Maze, options: MazeLimitOptions): void => {
     if (options.allowSideConnections) options.allowTilesOutsideWithSide = true;
 
     for (let y = 0; y < map.height; y++) {
         for (let x = 0; x < map.width; x++) {
-            const mapCell = map.tiles[y][x];
+            const mapCell = map.cells[y][x];
             const mazeCell = maze.tiles[y][x];
 
             if (mazeCell === undefined) continue;
@@ -155,7 +155,7 @@ const limitMapToMaze = (map: Map, maze: Maze, options: MazeLimitOptions): void =
                         map,
                         x,
                         y,
-                        mapCell.possibilities.filter(
+                        mapCell.possibleTiles.filter(
                             (tile) =>
                                 tile.bottom !== options.sideType &&
                                 tile.top !== options.sideType &&
@@ -171,7 +171,7 @@ const limitMapToMaze = (map: Map, maze: Maze, options: MazeLimitOptions): void =
                 map,
                 x,
                 y,
-                mapCell.possibilities.filter((tile) => {
+                mapCell.possibleTiles.filter((tile) => {
                     if (mazeCell.walls.top.open) {
                         if (tile.top !== options.sideType) return false;
                     } else if (!options.allowSideConnections && tile.top === options.sideType) return false;
@@ -190,4 +190,14 @@ const limitMapToMaze = (map: Map, maze: Maze, options: MazeLimitOptions): void =
         }
     }
 };
-export { limitMapToMaze, createAllPossibleTiles, createTilesFromTilemapData, parseTilemapData };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const shuffleArray = (array: any[]): void => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+};
+
+export { limitMapToMaze, createAllPossibleTiles, createTilesFromTilemapData, parseTilemapData, shuffleArray };

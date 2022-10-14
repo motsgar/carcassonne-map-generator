@@ -1,3 +1,5 @@
+import { shuffleArray } from './utils';
+
 export enum Side {
     Startpeice,
     Water,
@@ -23,7 +25,7 @@ export type Dependency = {
 export type MapCell = {
     x: number;
     y: number;
-    possibilities: Tile[];
+    possibleTiles: Tile[];
     collapsed: boolean;
     dependencies: Dependency[];
     sides: {
@@ -34,30 +36,50 @@ export type MapCell = {
     };
 };
 
-export type Map = {
-    width: number;
-    height: number;
-    tiles: MapCell[][];
+export type CellState = {
+    collapsed: boolean;
+    possibleTiles: Tile[];
 };
 
-export type Event = {
-    type: 'event1' | 'event2';
+export type OldCellStates = Map<number, Map<number, CellState>>;
+
+export type LimitationResult = {
+    success: boolean;
+    oldCellStates: OldCellStates;
+};
+
+export type CarcassonneMap = {
+    width: number;
+    height: number;
+    cells: MapCell[][];
+};
+
+export type CollapseEvent = {
+    type:
+        | 'leftCheckTrue'
+        | 'leftCheckFalse'
+        | 'rightCheckTrue'
+        | 'rightCheckFalse'
+        | 'topCheckTrue'
+        | 'topCheckFalse'
+        | 'bottomCheckTrue'
+        | 'bottomCheckFalse'
+        | 'collapse';
     x: number;
     y: number;
 };
 
-export type CallbackEvent = (event: Event) => void;
+export type CollapseEventCallback = (event: CollapseEvent) => void;
 
-const createMap = (width: number, height: number, tiles: Tile[]): Map => {
+const createMap = (width: number, height: number, tiles: Tile[]): CarcassonneMap => {
     // create 2d map of tiles and initialize every position with all possible tiles
-    const map: Map = {
-        tiles: Array.from(Array(height), () =>
+    const map: CarcassonneMap = {
+        cells: Array.from(Array(height), () =>
             new Array(width).fill(undefined).map(() => ({
                 x: 0,
                 y: 0,
-                possibilities: tiles.slice(),
+                possibleTiles: tiles.slice(),
                 collapsed: false,
-                entropyChecked: false,
                 dependencies: [] as Dependency[],
                 sides: {
                     top: new Set(tiles.map((tile) => tile.top)),
@@ -73,8 +95,8 @@ const createMap = (width: number, height: number, tiles: Tile[]): Map => {
 
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-            map.tiles[y][x].x = x;
-            map.tiles[y][x].y = y;
+            map.cells[y][x].x = x;
+            map.cells[y][x].y = y;
         }
     }
 
@@ -82,24 +104,24 @@ const createMap = (width: number, height: number, tiles: Tile[]): Map => {
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             if (x > 0) {
-                map.tiles[y][x].dependencies.push({ x: x - 1, y, hasChanged: false } as Dependency); // breaking the type system temporarily because reverse has to be set later
+                map.cells[y][x].dependencies.push({ x: x - 1, y, hasChanged: false } as Dependency); // breaking the type system temporarily because reverse has to be set later
             }
             if (x < width - 1) {
-                map.tiles[y][x].dependencies.push({ x: x + 1, y, hasChanged: false } as Dependency);
+                map.cells[y][x].dependencies.push({ x: x + 1, y, hasChanged: false } as Dependency);
             }
             if (y > 0) {
-                map.tiles[y][x].dependencies.push({ x, y: y - 1, hasChanged: false } as Dependency);
+                map.cells[y][x].dependencies.push({ x, y: y - 1, hasChanged: false } as Dependency);
             }
             if (y < height - 1) {
-                map.tiles[y][x].dependencies.push({ x, y: y + 1, hasChanged: false } as Dependency);
+                map.cells[y][x].dependencies.push({ x, y: y + 1, hasChanged: false } as Dependency);
             }
         }
     }
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-            for (const dependency of map.tiles[y][x].dependencies) {
+            for (const dependency of map.cells[y][x].dependencies) {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                dependency.reverse = map.tiles[dependency.y][dependency.x].dependencies.find(
+                dependency.reverse = map.cells[dependency.y][dependency.x].dependencies.find(
                     (d) => d.x === x && d.y === y
                 )!; // set the reverse dependency that was broken earlier
             }
@@ -109,141 +131,240 @@ const createMap = (width: number, height: number, tiles: Tile[]): Map => {
     return map;
 };
 
-const printMap = (map: Map): void => {
+const printMap = (map: CarcassonneMap): void => {
     let outputString = '';
-    outputString += '┏' + '━━━━━━┳'.repeat(map.width - 1) + '━━━━━━┓\n';
+    outputString += '┏' + '━━━━━━━┳'.repeat(map.width - 1) + '━━━━━━━┓\n';
     for (let y = 0; y < map.height; y++) {
         outputString += '┃';
         for (let x = 0; x < map.width; x++) {
-            const tile = map.tiles[y][x];
-            if (tile.collapsed) outputString += '  ' + tile.sides.top.values().next().value + '   ';
-            else outputString += '  -   ';
+            const tile = map.cells[y][x];
+            if (tile.collapsed) outputString += '  ' + tile.sides.top.values().next().value + '    ';
+            else outputString += '  -    ';
             outputString += '┃';
         }
 
         outputString += '\n┃';
         for (let x = 0; x < map.width; x++) {
-            const tile = map.tiles[y][x];
+            const tile = map.cells[y][x];
             if (tile.collapsed)
                 outputString +=
-                    tile.sides.left.values().next().value + ' ' + '# ' + ' ' + tile.sides.right.values().next().value;
-            else outputString += '- ' + tile.possibilities.length.toString().padEnd(2) + ' -';
+                    tile.sides.left.values().next().value + ' ' + '# ' + '  ' + tile.sides.right.values().next().value;
+            else outputString += '- ' + tile.possibleTiles.length.toString().padEnd(3) + ' -';
             outputString += '┃';
         }
         outputString += '\n┃';
         for (let x = 0; x < map.width; x++) {
-            const tile = map.tiles[y][x];
-            if (tile.collapsed) outputString += '  ' + tile.sides.bottom.values().next().value + '   ';
-            else outputString += '  -   ';
+            const tile = map.cells[y][x];
+            if (tile.collapsed) outputString += '  ' + tile.sides.bottom.values().next().value + '    ';
+            else outputString += '  -    ';
             outputString += '┃';
         }
 
-        if (y < map.height - 1) outputString += '\n┣' + '━━━━━━╋'.repeat(map.width - 1) + '━━━━━━┫\n';
+        if (y < map.height - 1) outputString += '\n┣' + '━━━━━━━╋'.repeat(map.width - 1) + '━━━━━━━┫\n';
     }
-    outputString += '\n┗' + '━━━━━━┻'.repeat(map.width - 1) + '━━━━━━┛';
+    outputString += '\n┗' + '━━━━━━━┻'.repeat(map.width - 1) + '━━━━━━━┛';
     console.log(outputString);
 };
 
 // checks a single coordinate for all possible tiles that fit the given sides
 const getPossibleTiles = (
-    map: Map,
+    map: CarcassonneMap,
     x: number,
     y: number,
-    tileWithPossibilities: MapCell,
-    callbackEvent?: CallbackEvent
+    tiles: Tile[],
+    collapseEvent?: CollapseEventCallback
 ): Tile[] => {
     const filteredTiles = [];
 
-    for (const tile of tileWithPossibilities.possibilities) {
-        if (x > 0 && !map.tiles[y][x - 1].sides.right.has(tile.left)) continue;
-        if (x < map.width - 1 && !map.tiles[y][x + 1].sides.left.has(tile.right)) continue;
-        if (y > 0 && !map.tiles[y - 1][x].sides.bottom.has(tile.top)) continue;
-        if (y < map.height - 1 && !map.tiles[y + 1][x].sides.top.has(tile.bottom)) continue;
+    for (const tile of tiles) {
+        if (x > 0 && !map.cells[y][x - 1].sides.right.has(tile.left)) {
+            collapseEvent && collapseEvent({ type: 'leftCheckFalse', x, y });
+            continue;
+        } else collapseEvent && collapseEvent({ type: 'leftCheckTrue', x, y });
+        if (x < map.width - 1 && !map.cells[y][x + 1].sides.left.has(tile.right)) {
+            collapseEvent && collapseEvent({ type: 'rightCheckFalse', x, y });
+            continue;
+        } else collapseEvent && collapseEvent({ type: 'rightCheckTrue', x, y });
+        if (y > 0 && !map.cells[y - 1][x].sides.bottom.has(tile.top)) {
+            collapseEvent && collapseEvent({ type: 'topCheckFalse', x, y });
+            continue;
+        } else collapseEvent && collapseEvent({ type: 'topCheckTrue', x, y });
+        if (y < map.height - 1 && !map.cells[y + 1][x].sides.top.has(tile.bottom)) {
+            collapseEvent && collapseEvent({ type: 'bottomCheckFalse', x, y });
+            continue;
+        } else collapseEvent && collapseEvent({ type: 'bottomCheckTrue', x, y });
 
         filteredTiles.push(tile);
     }
-    callbackEvent && callbackEvent({ type: 'event2', x: -1, y: -1 });
     return filteredTiles;
 };
 
 // function to be called recursively to calculate the possible tiles for a given coordinate
-const propagateThroughTiles = (map: Map, x: number, y: number, callbackEvent?: CallbackEvent): void => {
-    const mapTiles = map.tiles[y][x];
-    const dependencies = mapTiles.dependencies;
-    const originalPossibilities = mapTiles.possibilities.length;
-    mapTiles.possibilities = getPossibleTiles(map, x, y, mapTiles, callbackEvent);
-    mapTiles.sides = {
-        top: new Set(mapTiles.possibilities.map((tile) => tile.top)),
-        right: new Set(mapTiles.possibilities.map((tile) => tile.right)),
-        bottom: new Set(mapTiles.possibilities.map((tile) => tile.bottom)),
-        left: new Set(mapTiles.possibilities.map((tile) => tile.left)),
+const propagateThroughTiles = (
+    map: CarcassonneMap,
+    x: number,
+    y: number,
+    oldCellStates: OldCellStates,
+    collapseEvent?: CollapseEventCallback
+): boolean => {
+    const cell = map.cells[y][x];
+    const dependencies = cell.dependencies;
+    const originalPossibilities = cell.possibleTiles.length;
+
+    if (!oldCellStates.has(y)) oldCellStates.set(y, new Map<number, CellState>());
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (!oldCellStates.get(y)!.has(x))
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        oldCellStates.get(y)!.set(x, { possibleTiles: cell.possibleTiles.slice(), collapsed: cell.collapsed });
+
+    cell.possibleTiles = getPossibleTiles(map, x, y, cell.possibleTiles, collapseEvent);
+    if (cell.possibleTiles.length === 1) {
+        collapseEvent && collapseEvent({ type: 'collapse', x, y });
+        cell.collapsed = true;
+    } else if (cell.possibleTiles.length === 0) {
+        collapseEvent && collapseEvent({ type: 'collapse', x, y });
+        return false;
+    }
+    cell.sides = {
+        top: new Set(cell.possibleTiles.map((tile) => tile.top)),
+        right: new Set(cell.possibleTiles.map((tile) => tile.right)),
+        bottom: new Set(cell.possibleTiles.map((tile) => tile.bottom)),
+        left: new Set(cell.possibleTiles.map((tile) => tile.left)),
     };
 
     for (const dependency of dependencies) {
         dependency.hasChanged = false;
-        if (originalPossibilities !== mapTiles.possibilities.length) dependency.reverse.hasChanged = true;
+        if (originalPossibilities !== cell.possibleTiles.length) dependency.reverse.hasChanged = true;
     }
 
     for (const dependency of dependencies) {
-        if (map.tiles[dependency.y][dependency.x].collapsed) continue;
-        if (!map.tiles[dependency.y][dependency.x].dependencies.reduce((val, cur) => val || cur.hasChanged, false))
+        if (map.cells[dependency.y][dependency.x].collapsed) continue;
+        if (!map.cells[dependency.y][dependency.x].dependencies.reduce((val, cur) => val || cur.hasChanged, false))
             continue;
-        propagateThroughTiles(map, dependency.x, dependency.y, callbackEvent);
+        const noTilesLeft = propagateThroughTiles(map, dependency.x, dependency.y, oldCellStates, collapseEvent);
+        if (!noTilesLeft) return false;
     }
+    return true;
 };
 
 // this function doesn't check if the limitation leaves a tile without possibilities
 const limitTilePossibilities = (
-    map: Map,
+    map: CarcassonneMap,
     x: number,
     y: number,
     tileList: Tile[],
-    callbackEvent?: CallbackEvent
-): void => {
-    const possibleTiles = map.tiles[y][x].possibilities;
+    collapseEvent?: CollapseEventCallback
+): LimitationResult => {
+    const oldCellStates: OldCellStates = new Map<number, Map<number, CellState>>();
+    oldCellStates.set(y, new Map<number, CellState>());
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    oldCellStates.get(y)!.set(x, {
+        collapsed: map.cells[y][x].collapsed,
+        possibleTiles: map.cells[y][x].possibleTiles.slice(),
+    });
+
+    const possibleTiles = map.cells[y][x].possibleTiles;
 
     // remove all tiles that can't be in this position
     const filteredTileList = tileList.filter((tile) => possibleTiles.find((t) => t === tile));
 
     // check if the tile can be collapsed to the given tile
-    map.tiles[y][x].possibilities = filteredTileList;
-    map.tiles[y][x].sides = {
+    map.cells[y][x].possibleTiles = filteredTileList;
+    map.cells[y][x].sides = {
         top: new Set(filteredTileList.map((tile) => tile.top)),
         right: new Set(filteredTileList.map((tile) => tile.right)),
         bottom: new Set(filteredTileList.map((tile) => tile.bottom)),
         left: new Set(filteredTileList.map((tile) => tile.left)),
     };
-    if (filteredTileList.length === 1) map.tiles[y][x].collapsed = true;
+    if (filteredTileList.length === 1) map.cells[y][x].collapsed = true;
 
-    for (const dependency of map.tiles[y][x].dependencies) dependency.reverse.hasChanged = true;
+    for (const dependency of map.cells[y][x].dependencies) dependency.reverse.hasChanged = true;
 
-    propagateThroughTiles(map, x, y, callbackEvent);
+    const propaganationSuccess = propagateThroughTiles(map, x, y, oldCellStates, collapseEvent);
+
+    return {
+        success: propaganationSuccess,
+        oldCellStates,
+    };
 };
 
 // collapse a single coordinate to a specific tile
-const collapse = (map: Map, x: number, y: number, tile: Tile, callbackEvent?: CallbackEvent): void => {
-    limitTilePossibilities(map, x, y, [tile], callbackEvent);
+const collapse = (
+    map: CarcassonneMap,
+    x: number,
+    y: number,
+    tile: Tile,
+    collapseEvent?: CollapseEventCallback
+): LimitationResult => {
+    return limitTilePossibilities(map, x, y, [tile], collapseEvent);
 };
 
-const fullCollapse = (map: Map, callbackEvent?: CallbackEvent): void => {
-    while (true) {
-        const mapTiles = map.tiles
-            .flat()
-            .filter((tile) => !tile.collapsed)
-            .sort((a, b) => a.possibilities.length - b.possibilities.length);
-
-        if (mapTiles.length === 0) break;
-        const tileToCollapse = mapTiles[0];
-        if (tileToCollapse.possibilities.length === 0) throw new Error('No possible tiles left');
-        collapse(
-            map,
-            tileToCollapse.x,
-            tileToCollapse.y,
-            tileToCollapse.possibilities[(Math.random() * tileToCollapse.possibilities.length) | 0],
-            callbackEvent
-        );
+const resetOldCellStates = (map: CarcassonneMap, oldCellStates: OldCellStates): void => {
+    for (const [y, xMap] of oldCellStates) {
+        for (const [x, cellState] of xMap) {
+            console.log(
+                'resetting',
+                x,
+                y,
+                'tiles left before',
+                cellState.possibleTiles.length,
+                'tiles left after',
+                map.cells[y][x].possibleTiles.length
+            );
+            map.cells[y][x].possibleTiles = cellState.possibleTiles;
+            map.cells[y][x].collapsed = cellState.collapsed;
+            map.cells[y][x].sides = {
+                top: new Set(cellState.possibleTiles.map((tile) => tile.top)),
+                right: new Set(cellState.possibleTiles.map((tile) => tile.right)),
+                bottom: new Set(cellState.possibleTiles.map((tile) => tile.bottom)),
+                left: new Set(cellState.possibleTiles.map((tile) => tile.left)),
+            };
+        }
     }
-    callbackEvent && callbackEvent({ type: 'event1', x: -1, y: -1 });
+};
+
+const fullCollapse = (map: CarcassonneMap, collapseEvent?: CollapseEventCallback): void => {
+    let nonCollapsedTiles = map.cells.flat();
+    const oldCellStates: OldCellStates[] = [];
+
+    while (true) {
+        nonCollapsedTiles = nonCollapsedTiles
+            .filter((tile) => !tile.collapsed)
+            .sort((a, b) => a.possibleTiles.length - b.possibleTiles.length);
+
+        if (nonCollapsedTiles.length === 0) break;
+
+        const tileToCollapse = nonCollapsedTiles[0];
+        const originalPossibilitiesLength = tileToCollapse.possibleTiles.length;
+
+        let tileIndex = 0;
+        shuffleArray(tileToCollapse.possibleTiles);
+
+        while (tileIndex < tileToCollapse.possibleTiles.length) {
+            const collapseResult = collapse(
+                map,
+                tileToCollapse.x,
+                tileToCollapse.y,
+                tileToCollapse.possibleTiles[tileIndex],
+                collapseEvent
+            );
+
+            oldCellStates.push(collapseResult.oldCellStates);
+
+            if (collapseResult.success) break;
+
+            resetOldCellStates(map, collapseResult.oldCellStates);
+            tileIndex++;
+        }
+        if (tileIndex === originalPossibilitiesLength) {
+            printMap(map);
+            console.log(tileToCollapse);
+            throw new Error('No tile could be collapsed, (' + originalPossibilitiesLength + ' tiles left)');
+        }
+        if (tileIndex > 0) {
+            console.log(`Tested collapsing ${tileIndex} tiles in (${tileToCollapse.x}, ${tileToCollapse.y})`);
+        }
+    }
 };
 
 export { collapse, limitTilePossibilities, fullCollapse, printMap, createMap };

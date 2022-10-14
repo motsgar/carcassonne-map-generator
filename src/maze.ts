@@ -27,6 +27,14 @@ export type Maze = {
     tiles: MazeCell[][];
 };
 
+export type MazeEvent = {
+    type: 'event1' | 'event2';
+    x: number;
+    y: number;
+};
+
+export type MazeEventCallback = (event: MazeEvent) => void;
+
 const createMaze = (width: number, height: number): Maze => {
     const mazeCells: MazeCell[][] = Array.from(Array(height), () =>
         new Array(width).fill(undefined).map(() => ({
@@ -171,7 +179,7 @@ const printMaze = (maze: Maze): void => {
     console.log(outputString);
 };
 
-const processMaze = (maze: Maze): void => {
+const processMaze = (maze: Maze, mazeEvent?: MazeEventCallback): void => {
     // randomly pick first cell to be part of maze
     maze.tiles[(Math.random() * maze.height) | 0][(Math.random() * maze.width) | 0].isMaze = true;
 
