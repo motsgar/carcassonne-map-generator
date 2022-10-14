@@ -140,7 +140,7 @@ const createAllPossibleTiles = (): Tile[] => {
 };
 
 const limitMapToMaze = (map: CarcassonneMap, maze: Maze, options: MazeLimitOptions): void => {
-    if (options.allowSideConnections) options.allowTilesOutsideWithSide = true;
+    if (!options.allowTilesOutsideWithSide) options.allowSideConnections = false;
 
     for (let y = 0; y < map.height; y++) {
         for (let x = 0; x < map.width; x++) {
