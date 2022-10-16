@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/motsgar/carcassonne-map-generator/branch/main/graph/badge.svg)](https://codecov.io/gh/motsgar/carcassonne-map-generator)
+
 Coverage report is available at [app.codecov.io/gh/motsgar/carcassonne-map-generator](https://app.codecov.io/gh/motsgar/carcassonne-map-generator)
 
 Tests test all logic code but not UI code.
