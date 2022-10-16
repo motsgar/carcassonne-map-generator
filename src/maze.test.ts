@@ -113,6 +113,43 @@ describe('when printing a maze', () => {
 ┃                                         ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛`);
     });
+
+    it('prints correctly a maze with some walls', () => {
+        console.log = jest.fn();
+        const maze = createMaze(width, height);
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                maze.tiles[y][x].isMaze = true;
+                if (y % 3 === 1) maze.tiles[y][x].walls.left.open = true;
+                if (y % 5 === 2 || x % 2 === 0) maze.tiles[y][x].walls.top.open = true;
+            }
+        }
+
+        printMaze(maze);
+
+        expect(console.log).toHaveBeenCalledWith(`┏━━━━━━┳━━━━━━┳━━━━━━┳━━━━━━┳━━━━━━┳━━━━━━┓
+┃      ┃      ┃      ┃      ┃      ┃      ┃
+┃      ┃      ┃      ┃      ┃      ┃      ┃
+┃      ┃      ┃      ┃      ┃      ┃      ┃
+┃      ┗━━━━━━┛      ┗━━━━━━┛      ┗━━━━━━┫
+┃                                         ┃
+┃                                         ┃
+┃                                         ┃
+┃      ╻      ╻      ╻      ╻      ╻      ┃
+┃      ┃      ┃      ┃      ┃      ┃      ┃
+┃      ┃      ┃      ┃      ┃      ┃      ┃
+┃      ┃      ┃      ┃      ┃      ┃      ┃
+┃      ┣━━━━━━┫      ┣━━━━━━┫      ┣━━━━━━┫
+┃      ┃      ┃      ┃      ┃      ┃      ┃
+┃      ┃      ┃      ┃      ┃      ┃      ┃
+┃      ┃      ┃      ┃      ┃      ┃      ┃
+┃      ┗━━━━━━┛      ┗━━━━━━┛      ┗━━━━━━┫
+┃                                         ┃
+┃                                         ┃
+┃                                         ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛`);
+    });
 });
 
 describe('when processing a maze', () => {
