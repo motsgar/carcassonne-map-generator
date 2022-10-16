@@ -1,4 +1,12 @@
-import { collapse, createMap, fullCollapse, limitTilePossibilities, resetOldCellStates, Side } from './collapse';
+import {
+    collapse,
+    createMap,
+    fullCollapse,
+    limitTilePossibilities,
+    printMap,
+    resetOldCellStates,
+    Side,
+} from './collapse';
 import { createAllPossibleTiles } from './utils';
 
 describe('creating a map', () => {
@@ -71,6 +79,72 @@ describe('creating a map', () => {
                 }
             }
         }
+    });
+});
+
+describe('when printing map', () => {
+    const mapWidth = 6;
+    const mapHeight = 5;
+
+    it('prints empty map correctly', () => {
+        console.log = jest.fn();
+        const map = createMap(mapWidth, mapHeight, createAllPossibleTiles());
+        printMap(map);
+
+        expect(console.log).toHaveBeenCalledWith(`┏━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┓
+┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃
+┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃
+┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃
+┣━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━┫
+┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃
+┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃
+┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃
+┣━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━┫
+┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃
+┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃
+┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃
+┣━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━┫
+┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃
+┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃
+┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃
+┣━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━┫
+┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃
+┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃- 625 -┃
+┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃  -    ┃
+┗━━━━━━━┻━━━━━━━┻━━━━━━━┻━━━━━━━┻━━━━━━━┻━━━━━━━┛`);
+    });
+
+    it('prints a fully collapsed map correctly', () => {
+        console.log = jest.fn();
+        const map = createMap(mapWidth, mapHeight, createAllPossibleTiles());
+        for (let y = 0; y < mapHeight; y++) {
+            for (let x = 0; x < mapWidth; x++) {
+                map.cells[y][x].collapsed = true;
+            }
+        }
+        printMap(map);
+
+        expect(console.log).toHaveBeenCalledWith(`┏━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┓
+┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃
+┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃
+┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃
+┣━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━┫
+┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃
+┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃
+┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃
+┣━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━┫
+┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃
+┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃
+┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃
+┣━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━┫
+┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃
+┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃
+┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃
+┣━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━╋━━━━━━━┫
+┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃
+┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃0 #   0┃
+┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃  0    ┃
+┗━━━━━━━┻━━━━━━━┻━━━━━━━┻━━━━━━━┻━━━━━━━┻━━━━━━━┛`);
     });
 });
 
