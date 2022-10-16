@@ -151,7 +151,7 @@ const limitMapToMaze = (map: CarcassonneMap, maze: Maze, options: MazeLimitOptio
 
             if (!mazeCell.isMaze) {
                 if (!options.allowTilesOutsideWithSide) {
-                    limitTilePossibilities(
+                    const limitationResult = limitTilePossibilities(
                         map,
                         x,
                         y,
@@ -163,11 +163,15 @@ const limitMapToMaze = (map: CarcassonneMap, maze: Maze, options: MazeLimitOptio
                                 tile.right !== options.sideType
                         )
                     );
+
+                    if (!limitationResult.success) {
+                        throw new Error(`Could not limit tilemap to maze. No possible tiles left at (${x}, ${y})`);
+                    }
                 }
                 continue;
             }
 
-            limitTilePossibilities(
+            const limitationResult = limitTilePossibilities(
                 map,
                 x,
                 y,
@@ -187,9 +191,13 @@ const limitMapToMaze = (map: CarcassonneMap, maze: Maze, options: MazeLimitOptio
                     return true;
                 })
             );
+            if (!limitationResult.success) {
+                throw new Error(`Could not limit tilemap to maze. No possible tiles left at (${x}, ${y})`);
+            }
         }
     }
 };
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const shuffleArray = (array: any[]): void => {
     for (let i = array.length - 1; i > 0; i--) {
