@@ -175,7 +175,7 @@ const printMaze = (maze: Maze): void => {
         if (maze.tiles[maze.height - 1][x].walls.right.open) outputString += '━';
         else outputString += '┻';
     }
-    outputString += '━━━━━━┛\n';
+    outputString += '━━━━━━┛';
     console.log(outputString);
 };
 
