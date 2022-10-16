@@ -365,4 +365,4 @@ const fullCollapse = (map: CarcassonneMap, collapseEvent?: CollapseEventCallback
     }
 };
 
-export { collapse, limitTilePossibilities, fullCollapse, printMap, createMap };
+export { collapse, limitTilePossibilities, fullCollapse, printMap, createMap, resetOldCellStates };
