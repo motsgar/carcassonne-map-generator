@@ -156,10 +156,10 @@ describe('when processing a maze', () => {
     const width = 15;
     const height = 17;
 
-    it('generates a maze that has more than 0 maze tiles', () => {
+    it('generates a maze that has more than 0 maze tiles', async () => {
         const maze = createMaze(width, height);
 
-        processMaze(maze);
+        await processMaze(maze);
 
         let mazeTilesCount = 0;
 
@@ -172,10 +172,10 @@ describe('when processing a maze', () => {
         expect(mazeTilesCount).toBeGreaterThan(0);
     });
 
-    it('generates a maze where non maze tiles have all walls', () => {
+    it('generates a maze where non maze tiles have all walls', async () => {
         const maze = createMaze(width, height);
 
-        processMaze(maze);
+        await processMaze(maze);
 
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {

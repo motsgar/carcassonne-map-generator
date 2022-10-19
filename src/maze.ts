@@ -10,17 +10,14 @@ export enum Direction {
     Left,
 }
 
+export type Wall = { open: boolean };
+
 export type MazeCell = {
     x: number;
     y: number;
     solverDirection: Direction;
     isMaze: boolean;
-    walls: {
-        top: { open: boolean };
-        right: { open: boolean };
-        bottom: { open: boolean };
-        left: { open: boolean };
-    };
+    walls: { top: Wall; right: Wall; bottom: Wall; left: Wall };
 };
 
 export type Maze = {
@@ -29,11 +26,18 @@ export type Maze = {
     tiles: MazeCell[][];
 };
 
-export type MazeEvent = {
-    type: 'event1' | 'event2';
-    x: number;
-    y: number;
-};
+export type MazeEvent =
+    | {
+          type: 'event1' | 'event3';
+          x: number;
+          y: number;
+      }
+    | {
+          type: 'event2';
+          x: number;
+          y: number;
+          currentPath: { cells: MazeCell[]; walls: Wall[] };
+      };
 
 export type MazeEventCallback = (event: MazeEvent) => void;
 
@@ -181,10 +185,43 @@ const printMaze = (maze: Maze): void => {
     console.log(outputString);
 };
 
-let sleepMs = 70;
+let sleepMs = 0;
 
 const setSleepMs = (ms: number): void => {
     sleepMs = ms;
+};
+
+const getCurrentPath = (
+    maze: Maze,
+    startTile: MazeCell,
+    currentMazeTile: MazeCell
+): { cells: MazeCell[]; walls: Wall[] } => {
+    const cells: MazeCell[] = [];
+    const walls: Wall[] = [];
+    let tile = startTile;
+    while (true) {
+        cells.push(tile);
+        if (tile === currentMazeTile) break;
+        switch (tile.solverDirection) {
+            case Direction.Up:
+                tile = maze.tiles[tile.y - 1][tile.x];
+                walls.push(tile.walls.bottom);
+                break;
+            case Direction.Right:
+                tile = maze.tiles[tile.y][tile.x + 1];
+                walls.push(tile.walls.left);
+                break;
+            case Direction.Down:
+                tile = maze.tiles[tile.y + 1][tile.x];
+                walls.push(tile.walls.top);
+                break;
+            case Direction.Left:
+                tile = maze.tiles[tile.y][tile.x - 1];
+                walls.push(tile.walls.right);
+                break;
+        }
+    }
+    return { cells, walls };
 };
 
 const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<void> => {
@@ -194,8 +231,6 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
     let nonMazeTiles = maze.tiles.flat().slice();
 
     while (true) {
-        mazeEvent?.({ type: 'event1', x: 0, y: 0 });
-
         nonMazeTiles = nonMazeTiles.filter((tile) => !tile.isMaze);
         if (nonMazeTiles.length < maze.height * maze.width * (1 - mazePathProcentage) || nonMazeTiles.length === 0)
             break;
@@ -207,6 +242,14 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
 
         while (true) {
             if (currentMazeTile.isMaze) break;
+
+            mazeEvent?.({
+                type: 'event2',
+                x: currentMazeTile.x,
+                y: currentMazeTile.y,
+                currentPath: getCurrentPath(maze, startTile, currentMazeTile),
+            });
+
             const possibleDirections = [];
             if (currentMazeTile.y > 0) possibleDirections.push(Direction.Up);
             if (currentMazeTile.x < maze.width - 1) possibleDirections.push(Direction.Right);
@@ -227,13 +270,17 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
                     currentMazeTile = maze.tiles[currentMazeTile.y][currentMazeTile.x - 1];
                     break;
             }
-            mazeEvent?.({ type: 'event2', x: currentMazeTile.x, y: currentMazeTile.y });
 
             sleepMs > 0 && (await sleep(sleepMs));
         }
         currentMazeTile = startTile;
 
         while (true) {
+            mazeEvent?.({
+                type: 'event1',
+                x: currentMazeTile.x,
+                y: currentMazeTile.y,
+            });
             if (currentMazeTile.isMaze) break;
 
             currentMazeTile.isMaze = true;
@@ -257,6 +304,11 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
                     break;
             }
         }
+        mazeEvent?.({
+            type: 'event3',
+            x: currentMazeTile.x,
+            y: currentMazeTile.y,
+        });
     }
 
     // randomly remove randomWallRemoveProcentage of the walls that connect two maze tiles
