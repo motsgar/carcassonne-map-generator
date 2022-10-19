@@ -1,9 +1,9 @@
 import './appCanvas';
 import { fullCollapse, printMap, createMap, Side } from './collapse';
 import { createTilesFromTilemapData, limitMapToMaze, parseTilemapData } from './utils';
-import { createMaze, processMaze, printMaze } from './maze';
+import { createMaze, processMaze, printMaze, MazeEvent } from './maze';
 import { ZodError } from 'zod';
-import { setMaze } from './appCanvas';
+import { highlightCell, setMaze } from './appCanvas';
 
 const width = 15;
 const height = 12;
@@ -24,7 +24,13 @@ fetch('/defaultTilemap.json')
 
         const maze = createMaze(width, height);
         console.time('processMaze');
-        processMaze(maze);
+        processMaze(maze, (event: MazeEvent) => {
+            switch (event.type) {
+                case 'event2':
+                    highlightCell(event.x, event.y);
+                    break;
+            }
+        });
         console.timeEnd('processMaze');
         printMaze(maze);
 

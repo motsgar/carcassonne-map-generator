@@ -1,3 +1,5 @@
+import { sleep } from './utils';
+
 const mazePathProcentage = 0.5;
 const randomWallRemoveProcentage = 0.4;
 
@@ -179,19 +181,29 @@ const printMaze = (maze: Maze): void => {
     console.log(outputString);
 };
 
-const processMaze = (maze: Maze, mazeEvent?: MazeEventCallback): void => {
+let sleepMs = 70;
+
+const setSleepMs = (ms: number): void => {
+    sleepMs = ms;
+};
+
+const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<void> => {
     // randomly pick first cell to be part of maze
     maze.tiles[(Math.random() * maze.height) | 0][(Math.random() * maze.width) | 0].isMaze = true;
 
     let nonMazeTiles = maze.tiles.flat().slice();
 
     while (true) {
+        mazeEvent?.({ type: 'event1', x: 0, y: 0 });
+
         nonMazeTiles = nonMazeTiles.filter((tile) => !tile.isMaze);
         if (nonMazeTiles.length < maze.height * maze.width * (1 - mazePathProcentage) || nonMazeTiles.length === 0)
             break;
 
         const startTile = nonMazeTiles[(Math.random() * nonMazeTiles.length) | 0];
         let currentMazeTile = startTile;
+
+        sleepMs > 0 && (await sleep(sleepMs));
 
         while (true) {
             if (currentMazeTile.isMaze) break;
@@ -215,6 +227,9 @@ const processMaze = (maze: Maze, mazeEvent?: MazeEventCallback): void => {
                     currentMazeTile = maze.tiles[currentMazeTile.y][currentMazeTile.x - 1];
                     break;
             }
+            mazeEvent?.({ type: 'event2', x: currentMazeTile.x, y: currentMazeTile.y });
+
+            sleepMs > 0 && (await sleep(sleepMs));
         }
         currentMazeTile = startTile;
 
@@ -265,4 +280,4 @@ const processMaze = (maze: Maze, mazeEvent?: MazeEventCallback): void => {
     }
 };
 
-export { createMaze, printMaze, processMaze };
+export { createMaze, printMaze, processMaze, setSleepMs };

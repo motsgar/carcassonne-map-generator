@@ -1,4 +1,4 @@
-import { Maze } from './maze';
+import { Direction, Maze } from './maze';
 
 const appCanvasElement = document.getElementById('app-canvas') as HTMLCanvasElement;
 const appCtx = appCanvasElement.getContext('2d')!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -21,7 +21,87 @@ const setMaze = (maze: Maze): void => {
     _maze = maze;
 };
 
+const drawArrow = (x: number, y: number, direction: Direction): void => {
+    appCtx.fillStyle = '#ff0000';
+    switch (direction) {
+        case Direction.Up:
+            appCtx.beginPath();
+            appCtx.moveTo(Math.floor(x), Math.floor(y - zoomLevel / 3));
+            appCtx.lineTo(Math.floor(x + zoomLevel / 4), Math.floor(y));
+            appCtx.lineTo(Math.floor(x + zoomLevel / 13), Math.floor(y));
+            appCtx.lineTo(Math.floor(x + zoomLevel / 13), Math.floor(y + zoomLevel / 3));
+            appCtx.lineTo(Math.floor(x - zoomLevel / 13), Math.floor(y + zoomLevel / 3));
+            appCtx.lineTo(Math.floor(x - zoomLevel / 13), Math.floor(y));
+            appCtx.lineTo(Math.floor(x - zoomLevel / 4), Math.floor(y));
+            appCtx.closePath();
+            appCtx.fill();
+            break;
+        case Direction.Right:
+            appCtx.beginPath();
+            appCtx.moveTo(Math.floor(x + zoomLevel / 3), Math.floor(y));
+            appCtx.lineTo(Math.floor(x), Math.floor(y - zoomLevel / 4));
+            appCtx.lineTo(Math.floor(x), Math.floor(y - zoomLevel / 13));
+            appCtx.lineTo(Math.floor(x - zoomLevel / 3), Math.floor(y - zoomLevel / 13));
+            appCtx.lineTo(Math.floor(x - zoomLevel / 3), Math.floor(y + zoomLevel / 13));
+            appCtx.lineTo(Math.floor(x), Math.floor(y + zoomLevel / 13));
+            appCtx.lineTo(Math.floor(x), Math.floor(y + zoomLevel / 4));
+            appCtx.closePath();
+            appCtx.fill();
+            break;
+        case Direction.Down:
+            appCtx.beginPath();
+            appCtx.moveTo(Math.floor(x), Math.floor(y + zoomLevel / 3));
+            appCtx.lineTo(Math.floor(x - zoomLevel / 4), Math.floor(y));
+            appCtx.lineTo(Math.floor(x - zoomLevel / 13), Math.floor(y));
+            appCtx.lineTo(Math.floor(x - zoomLevel / 13), Math.floor(y - zoomLevel / 3));
+            appCtx.lineTo(Math.floor(x + zoomLevel / 13), Math.floor(y - zoomLevel / 3));
+            appCtx.lineTo(Math.floor(x + zoomLevel / 13), Math.floor(y));
+            appCtx.lineTo(Math.floor(x + zoomLevel / 4), Math.floor(y));
+            appCtx.closePath();
+            appCtx.fill();
+            break;
+        case Direction.Left:
+            appCtx.beginPath();
+            appCtx.moveTo(Math.floor(x - zoomLevel / 3), Math.floor(y));
+            appCtx.lineTo(Math.floor(x), Math.floor(y + zoomLevel / 4));
+            appCtx.lineTo(Math.floor(x), Math.floor(y + zoomLevel / 13));
+            appCtx.lineTo(Math.floor(x + zoomLevel / 3), Math.floor(y + zoomLevel / 13));
+            appCtx.lineTo(Math.floor(x + zoomLevel / 3), Math.floor(y - zoomLevel / 13));
+            appCtx.lineTo(Math.floor(x), Math.floor(y - zoomLevel / 13));
+            appCtx.lineTo(Math.floor(x), Math.floor(y - zoomLevel / 4));
+            appCtx.closePath();
+            appCtx.fill();
+            break;
+    }
+};
+
+type Highlight = {
+    x: number;
+    y: number;
+    color: string;
+    currentDecay: number;
+    maxDecay: number;
+};
+
+const highlights: Highlight[] = [];
+
+const highlightCell = (x: number, y: number): void => {
+    highlights.push({
+        x,
+        y,
+        color: '#00ff00',
+        currentDecay: 0,
+        maxDecay: 1,
+    });
+};
+
+let lastDrawTime = Date.now();
+
 const draw = (): void => {
+    const currentTime = Date.now();
+    const dt = Date.now() - lastDrawTime;
+    lastDrawTime = currentTime;
+
     appCtx.clearRect(0, 0, appCanvasElement.width, appCanvasElement.height);
 
     appCtx.lineWidth = 1;
@@ -47,6 +127,8 @@ const draw = (): void => {
 
                 if (!tile.walls.bottom.open)
                     appCtx.fillRect(Math.floor(pos.x), Math.floor(pos.y + zoomLevel), Math.ceil(zoomLevel), 1);
+
+                drawArrow(pos.x + zoomLevel / 2, pos.y + zoomLevel / 2, tile.solverDirection);
             }
         }
         appCtx.fillStyle = '#000000';
@@ -58,6 +140,20 @@ const draw = (): void => {
         appCtx.stroke();
     }
 
+    for (let i = 0; i < highlights.length; i++) {
+        const highlight = highlights[i];
+        const pos = getPosOnCanvas({ x: highlight.x, y: highlight.y });
+        appCtx.fillStyle =
+            highlight.color +
+            Math.floor((1 - highlight.currentDecay / highlight.maxDecay) * 255)
+                .toString(16)
+                .padStart(2, '0');
+        appCtx.fillRect(Math.floor(pos.x + 1), Math.floor(pos.y + 1), Math.floor(zoomLevel), Math.floor(zoomLevel));
+        highlight.currentDecay += dt / 1000;
+        if (highlight.currentDecay >= highlight.maxDecay) {
+            highlights.splice(i, 1);
+        }
+    }
     window.requestAnimationFrame(draw);
 };
 
@@ -113,4 +209,4 @@ window.addEventListener('resize', resizeCanvas, false);
 resizeCanvas();
 draw();
 
-export { setMaze };
+export { setMaze, highlightCell };
