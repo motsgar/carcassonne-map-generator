@@ -1,6 +1,6 @@
 {
     "name": "carcassonne-map-generator",
-    "version": "0.0.15",
+    "version": "0.0.16",
     "description": "",
     "main": "index.js",
     "scripts": {
