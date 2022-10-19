@@ -3,9 +3,10 @@ import { fullCollapse, printMap, createMap, Side } from './collapse';
 import { createTilesFromTilemapData, limitMapToMaze, parseTilemapData } from './utils';
 import { createMaze, processMaze, printMaze } from './maze';
 import { ZodError } from 'zod';
+import { setMaze } from './appCanvas';
 
-const width = 120;
-const height = 70;
+const width = 15;
+const height = 12;
 
 fetch('/defaultTilemap.json')
     .then((res) => res.json())
@@ -50,4 +51,6 @@ fetch('/defaultTilemap.json')
         console.timeEnd('time for full collapse');
         console.log('map after full collapse:');
         printMap(map);
+
+        setMaze(maze);
     });

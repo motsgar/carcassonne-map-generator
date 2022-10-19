@@ -1,50 +1,62 @@
+import { Maze } from './maze';
+
 const appCanvasElement = document.getElementById('app-canvas') as HTMLCanvasElement;
 const appCtx = appCanvasElement.getContext('2d')!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
 
-let zoomLevel = 1;
+let zoomLevel = 50;
 const zoomSpeed = 2000;
-let cameraPosX = 0;
-let cameraPosY = 0;
-
-const line = {
-    x0: 0,
-    x1: 0,
-    y0: 10,
-    y1: 100,
-};
-
-const line2 = {
-    x0: 10,
-    x1: 100,
-    y0: 0,
-    y1: 0,
-};
+let cameraPosX = 8;
+let cameraPosY = 8;
 
 const getPosOnCanvas = (pos: { x: number; y: number }): { x: number; y: number } => {
     return {
         x: (pos.x - cameraPosX) * zoomLevel + appCanvasElement.width / 2,
-        y: appCanvasElement.height - ((pos.y - cameraPosY) * zoomLevel + appCanvasElement.height / 2),
+        y: (pos.y - cameraPosY) * zoomLevel + appCanvasElement.height / 2,
     };
+};
+
+let _maze: Maze | undefined = undefined;
+
+const setMaze = (maze: Maze): void => {
+    _maze = maze;
 };
 
 const draw = (): void => {
     appCtx.clearRect(0, 0, appCanvasElement.width, appCanvasElement.height);
 
-    appCtx.lineWidth = 2;
+    appCtx.lineWidth = 1;
     appCtx.strokeStyle = 'black';
-    appCtx.beginPath();
-    const pos = getPosOnCanvas({ x: line.x0, y: line.y0 });
-    const pos2 = getPosOnCanvas({ x: line.x1, y: line.y1 });
-    appCtx.moveTo(pos.x, pos.y);
-    appCtx.lineTo(pos2.x, pos2.y);
-    appCtx.stroke();
 
-    appCtx.beginPath();
-    const pos3 = getPosOnCanvas({ x: line2.x0, y: line2.y0 });
-    const pos4 = getPosOnCanvas({ x: line2.x1, y: line2.y1 });
-    appCtx.moveTo(pos3.x, pos3.y);
-    appCtx.lineTo(pos4.x, pos4.y);
-    appCtx.stroke();
+    if (_maze) {
+        for (const row of _maze.tiles) {
+            for (const tile of row) {
+                const pos = getPosOnCanvas({ x: tile.x, y: tile.y });
+                if (!tile.isMaze) {
+                    appCtx.fillStyle = '#999999';
+                    appCtx.fillRect(
+                        Math.floor(pos.x + 1),
+                        Math.floor(pos.y + 1),
+                        Math.floor(zoomLevel),
+                        Math.floor(zoomLevel)
+                    );
+                }
+                appCtx.fillStyle = '#000000';
+
+                if (!tile.walls.right.open)
+                    appCtx.fillRect(Math.floor(pos.x + zoomLevel), Math.floor(pos.y), 1, Math.ceil(zoomLevel));
+
+                if (!tile.walls.bottom.open)
+                    appCtx.fillRect(Math.floor(pos.x), Math.floor(pos.y + zoomLevel), Math.ceil(zoomLevel), 1);
+            }
+        }
+        appCtx.fillStyle = '#000000';
+
+        appCtx.beginPath();
+        const startPos = getPosOnCanvas({ x: 0, y: 0 });
+        appCtx.fillRect(Math.floor(startPos.x), Math.floor(startPos.y), Math.ceil(zoomLevel * _maze.width), 1);
+        appCtx.fillRect(Math.floor(startPos.x), Math.floor(startPos.y), 1, Math.ceil(zoomLevel * _maze.height));
+        appCtx.stroke();
+    }
 
     window.requestAnimationFrame(draw);
 };
@@ -63,7 +75,7 @@ const zoomView = (e: WheelEvent): void => {
     const multY = ((e.clientY - appCanvasElement.height / 2) * -(deltaY / zoomSpeed)) / zoomLevel;
 
     cameraPosX += multX;
-    cameraPosY -= multY;
+    cameraPosY += multY;
 };
 
 let latestX = 0;
@@ -76,7 +88,7 @@ const moveView = (e: MouseEvent): void => {
     latestX = e.clientX;
     latestY = e.clientY;
     cameraPosX -= deltaX / zoomLevel;
-    cameraPosY += deltaY / zoomLevel;
+    cameraPosY -= deltaY / zoomLevel;
 };
 
 const stopMoveView = (e: MouseEvent): void => {
@@ -100,3 +112,5 @@ window.addEventListener('resize', resizeCanvas, false);
 
 resizeCanvas();
 draw();
+
+export { setMaze };
