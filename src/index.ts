@@ -3,7 +3,7 @@ import { fullCollapse, printMap, createMap, Side } from './collapse';
 import { createTilesFromTilemapData, limitMapToMaze, parseTilemapData } from './utils';
 import { createMaze, processMaze, printMaze, MazeEvent, setSleepMs } from './maze';
 import { ZodError } from 'zod';
-import { highlightCell, setMaze, setCurrentPath } from './appCanvas';
+import * as ui from './appCanvas';
 
 const width = 15;
 const height = 12;
@@ -12,7 +12,7 @@ setSleepMs(30);
 
 fetch('/defaultTilemap.json')
     .then((res) => res.json())
-    .then((rawTilemapData) => {
+    .then(async (rawTilemapData) => {
         let tilemapData;
         try {
             tilemapData = parseTilemapData(rawTilemapData);
@@ -25,18 +25,20 @@ fetch('/defaultTilemap.json')
         const tiles = createTilesFromTilemapData(tilemapData);
 
         const maze = createMaze(width, height);
+        ui.setMaze(maze);
+
         console.time('processMaze');
-        processMaze(maze, (event: MazeEvent) => {
+        await processMaze(maze, (event: MazeEvent) => {
             switch (event.type) {
                 case 'event1':
-                    highlightCell(event.x, event.y, 0.5);
+                    ui.highlightCell(event.x, event.y, 0.5);
                     break;
                 case 'event2':
-                    highlightCell(event.x, event.y, 0.3);
-                    setCurrentPath(event.currentPath);
+                    ui.highlightCell(event.x, event.y, 0.3);
+                    ui.setCurrentPath(event.currentPath);
                     break;
                 case 'event3':
-                    setCurrentPath({ cells: [], walls: [] });
+                    ui.setCurrentPath({ cells: [], walls: [] });
                     break;
             }
         });
@@ -66,6 +68,4 @@ fetch('/defaultTilemap.json')
         console.timeEnd('time for full collapse');
         console.log('map after full collapse:');
         printMap(map);
-
-        setMaze(maze);
     });
