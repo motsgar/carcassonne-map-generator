@@ -1,7 +1,7 @@
 import { shuffleArray } from './utils';
 
 export enum Side {
-    Startpeice,
+    Startpiece,
     Water,
     Field,
     Road,
@@ -280,10 +280,10 @@ const limitTilePossibilities = (
 
     for (const dependency of map.cells[y][x].dependencies) dependency.reverse.hasChanged = true;
 
-    const propaganationSuccess = propagateThroughTiles(map, x, y, oldCellStates, collapseEvent);
+    const propagationSuccess = propagateThroughTiles(map, x, y, oldCellStates, collapseEvent);
 
     return {
-        success: propaganationSuccess,
+        success: propagationSuccess,
         oldCellStates,
     };
 };
