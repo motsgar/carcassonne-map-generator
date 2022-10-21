@@ -208,8 +208,14 @@ const shuffleArray = (array: any[]): void => {
     }
 };
 
+let unsleptTime = 0;
+
 const sleep = async (ms: number): Promise<void> => {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    unsleptTime += ms;
+    if (unsleptTime >= 1) {
+        await new Promise((resolve) => setTimeout(resolve, unsleptTime));
+        unsleptTime = 0;
+    }
 };
 
 export { limitMapToMaze, createAllPossibleTiles, createTilesFromTilemapData, parseTilemapData, shuffleArray, sleep };

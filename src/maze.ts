@@ -225,6 +225,8 @@ const getCurrentPath = (
 };
 
 const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<void> => {
+    const startTime = Date.now();
+    let sleepsHappened = 0;
     // randomly pick first cell to be part of maze
     maze.tiles[(Math.random() * maze.height) | 0][(Math.random() * maze.width) | 0].isMaze = true;
 
@@ -238,7 +240,15 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
         const startTile = nonMazeTiles[(Math.random() * nonMazeTiles.length) | 0];
         let currentMazeTile = startTile;
 
-        sleepMs > 0 && (await sleep(sleepMs));
+        if (sleepMs > 0) {
+            sleepsHappened++;
+            const currentTime = Date.now();
+            const timeShouldHavePassed = sleepMs * sleepsHappened;
+            const timePassed = currentTime - startTime;
+            if (timePassed < timeShouldHavePassed) {
+                await sleep(timeShouldHavePassed - timePassed);
+            }
+        }
 
         while (true) {
             if (currentMazeTile.isMaze) break;
@@ -271,7 +281,15 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
                     break;
             }
 
-            sleepMs > 0 && (await sleep(sleepMs));
+            if (sleepMs > 0) {
+                sleepsHappened++;
+                const currentTime = Date.now();
+                const timeShouldHavePassed = sleepMs * sleepsHappened;
+                const timePassed = currentTime - startTime;
+                if (timePassed < timeShouldHavePassed) {
+                    await sleep(timeShouldHavePassed - timePassed);
+                }
+            }
         }
         currentMazeTile = startTile;
 

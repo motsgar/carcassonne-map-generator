@@ -22,6 +22,7 @@ const setMaze = (maze: Maze): void => {
 };
 
 const drawArrow = (x: number, y: number, direction: Direction): void => {
+    const oldStyle = appCtx.fillStyle;
     appCtx.fillStyle = '#ff0000';
     switch (direction) {
         case Direction.Up:
@@ -73,6 +74,7 @@ const drawArrow = (x: number, y: number, direction: Direction): void => {
             appCtx.fill();
             break;
     }
+    appCtx.fillStyle = oldStyle;
 };
 
 type Highlight = {
@@ -116,6 +118,32 @@ const draw = (): void => {
     appCtx.strokeStyle = 'black';
 
     if (_maze) {
+        const leftTopPos = getPosOnCanvas({ x: 0, y: 0 });
+        const rightBottomPos = getPosOnCanvas({ x: _maze.width, y: _maze.height });
+
+        appCtx.fillStyle = '#999999';
+        appCtx.fillRect(leftTopPos.x, leftTopPos.y, rightBottomPos.x - leftTopPos.x, rightBottomPos.y - leftTopPos.y);
+
+        appCtx.fillStyle = '#000000';
+        for (let x = 0; x <= _maze.width; x++) {
+            const pos = getPosOnCanvas({ x, y: 0 });
+            appCtx.fillRect(
+                Math.floor(pos.x),
+                Math.floor(leftTopPos.y),
+                2,
+                Math.floor(rightBottomPos.y) - Math.floor(leftTopPos.y) + 2
+            );
+        }
+        for (let y = 0; y <= _maze.height; y++) {
+            const pos = getPosOnCanvas({ x: 0, y });
+            appCtx.fillRect(
+                Math.floor(leftTopPos.x),
+                Math.floor(pos.y),
+                Math.floor(rightBottomPos.x) - Math.floor(leftTopPos.x) + 2,
+                2
+            );
+        }
+
         for (const row of _maze.tiles) {
             for (const tile of row) {
                 const pos = getPosOnCanvas({ x: tile.x, y: tile.y });
@@ -124,68 +152,80 @@ const draw = (): void => {
                 posOffset.y = Math.floor(posOffset.y) - Math.floor(pos.y);
 
                 let shouldDrawArrow = false;
+                let shouldDrawBackground = false;
                 if (_currentPath.includes(tile)) {
                     if (!tile.isMaze) shouldDrawArrow = true;
                     appCtx.fillStyle = '#aaffaa';
-                } else if (tile.isMaze) appCtx.fillStyle = '#ffffff';
-                else appCtx.fillStyle = '#999999';
+                    shouldDrawBackground = true;
+                } else if (tile.isMaze) {
+                    appCtx.fillStyle = '#ffffff';
+                    shouldDrawBackground = true;
+                }
+                if (shouldDrawBackground)
+                    appCtx.fillRect(
+                        Math.floor(pos.x) + 2,
+                        Math.floor(pos.y) + 2,
+                        Math.floor(posOffset.x) - 2,
+                        Math.floor(posOffset.y) - 2
+                    );
 
-                appCtx.fillRect(
-                    Math.floor(pos.x + 1),
-                    Math.floor(pos.y + 1),
-                    Math.floor(posOffset.x),
-                    Math.floor(posOffset.y)
-                );
-                shouldDrawArrow && drawArrow(pos.x + posOffset.x / 2, pos.y + posOffset.y / 2, tile.solverDirection);
+                if (shouldDrawArrow)
+                    drawArrow(pos.x + posOffset.x / 2 + 1, pos.y + posOffset.y / 2 + 1, tile.solverDirection);
 
-                appCtx.fillStyle = '#000000';
-
-                if (!tile.walls.right.open && !_currentWalls.includes(tile.walls.right))
-                    appCtx.fillRect(Math.floor(pos.x + posOffset.x), Math.floor(pos.y), 1, Math.floor(posOffset.y + 1));
-
-                if (!tile.walls.bottom.open && !_currentWalls.includes(tile.walls.bottom))
-                    appCtx.fillRect(Math.floor(pos.x), Math.floor(pos.y + posOffset.y), Math.floor(posOffset.x + 1), 1);
+                if (tile.walls.right.open || _currentWalls.includes(tile.walls.right)) {
+                    appCtx.fillRect(
+                        Math.floor(pos.x + posOffset.x),
+                        Math.floor(pos.y) + 2,
+                        2,
+                        Math.floor(posOffset.y) - 2
+                    );
+                }
+                if (tile.walls.bottom.open || _currentWalls.includes(tile.walls.bottom)) {
+                    appCtx.fillRect(
+                        Math.floor(pos.x) + 2,
+                        Math.floor(pos.y + posOffset.y),
+                        Math.floor(posOffset.x) - 2,
+                        2
+                    );
+                }
             }
         }
-        appCtx.fillStyle = '#000000';
 
-        appCtx.beginPath();
-        const startPos = getPosOnCanvas({ x: 0, y: 0 });
-        const endPos = getPosOnCanvas({ x: _maze.width, y: _maze.height });
-        appCtx.fillRect(
-            Math.floor(startPos.x),
-            Math.floor(startPos.y),
-            Math.floor(endPos.x) - Math.floor(startPos.x),
-            1
-        );
-        appCtx.fillRect(
-            Math.floor(startPos.x),
-            Math.floor(startPos.y),
-            1,
-            Math.floor(endPos.y) - Math.floor(startPos.y)
-        );
-        appCtx.stroke();
-    }
+        for (let i = 0; i < highlights.length; i++) {
+            const highlight = highlights[i];
+            const pos = getPosOnCanvas({ x: highlight.x, y: highlight.y });
+            const posOffset = getPosOnCanvas({ x: highlight.x + 1, y: highlight.y + 1 });
+            posOffset.x = Math.floor(posOffset.x) - Math.floor(pos.x);
+            posOffset.y = Math.floor(posOffset.y) - Math.floor(pos.y);
 
-    for (let i = 0; i < highlights.length; i++) {
-        const highlight = highlights[i];
-        const pos = getPosOnCanvas({ x: highlight.x, y: highlight.y });
-        const posOffset = getPosOnCanvas({ x: highlight.x + 1, y: highlight.y + 1 });
-        posOffset.x = Math.floor(posOffset.x) - Math.floor(pos.x);
-        posOffset.y = Math.floor(posOffset.y) - Math.floor(pos.y);
+            appCtx.fillStyle =
+                highlight.color +
+                Math.floor((1 - highlight.currentDecay / highlight.maxDecay) * 255)
+                    .toString(16)
+                    .padStart(2, '0');
 
-        appCtx.fillStyle =
-            highlight.color +
-            Math.floor((1 - highlight.currentDecay / highlight.maxDecay) * 255)
-                .toString(16)
-                .padStart(2, '0');
-        appCtx.fillRect(Math.floor(pos.x + 1), Math.floor(pos.y + 1), Math.floor(posOffset.x), Math.floor(posOffset.y));
-        highlight.currentDecay += dt / 1000;
-        if (highlight.currentDecay >= highlight.maxDecay) {
-            highlights.splice(i, 1);
-            i--;
+            appCtx.fillRect(
+                Math.floor(pos.x) + 2,
+                Math.floor(pos.y) + 2,
+                Math.floor(posOffset.x) - 2,
+                Math.floor(posOffset.y) - 2
+            );
+
+            if (_currentWalls.includes(_maze.tiles[highlight.y][highlight.x].walls.right)) {
+                appCtx.fillRect(Math.floor(pos.x + posOffset.x), Math.floor(pos.y) + 2, 2, Math.floor(posOffset.y) - 2);
+            }
+            if (_currentWalls.includes(_maze.tiles[highlight.y][highlight.x].walls.bottom)) {
+                appCtx.fillRect(Math.floor(pos.x) + 2, Math.floor(pos.y + posOffset.y), Math.floor(posOffset.x) - 2, 2);
+            }
+
+            highlight.currentDecay += dt / 1000;
+            if (highlight.currentDecay >= highlight.maxDecay) {
+                highlights.splice(i, 1);
+                i--;
+            }
         }
     }
+
     window.requestAnimationFrame(draw);
 };
 
@@ -196,9 +236,16 @@ const resizeCanvas = (): void => {
 
 const zoomView = (e: WheelEvent): void => {
     e.preventDefault();
-    const deltaY = e.deltaY;
+    let deltaY = e.deltaY;
 
     zoomLevel -= (deltaY / zoomSpeed) * zoomLevel;
+    if (zoomLevel < 5) {
+        deltaY = 0;
+        zoomLevel = 5;
+    } else if (zoomLevel > 1000) {
+        zoomLevel = 1000;
+        deltaY = 0;
+    }
     const multX = ((e.clientX - appCanvasElement.width / 2) * -(deltaY / zoomSpeed)) / zoomLevel;
     const multY = ((e.clientY - appCanvasElement.height / 2) * -(deltaY / zoomSpeed)) / zoomLevel;
 
