@@ -18,3 +18,10 @@ Project is available at [https://carcassonne.motsgar.fi](https://carcassonne.mot
 -   [Definition document](./documentation/definition-document.md)
 -   [Testing document](./documentation/testing-document.md)
 -   [Implementation document](./documentation/implementation-document.md)
+
+## tile image credits
+
+[https://en.wikipedia.org/wiki/Carcassonne\_(board_game)](<https://en.wikipedia.org/wiki/Carcassonne_(board_game)>)
+
+Default tile images taken from wikipedia ([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/))
+Images made by [Mliu92](https://commons.wikimedia.org/wiki/User:Mliu92)

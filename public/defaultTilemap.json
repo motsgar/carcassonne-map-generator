@@ -1,359 +1,29 @@
 {
-    "width": 16,
-    "height": 10,
-    "tileSize": 256,
+    "width": 6,
+    "height": 5,
+    "tileSize": 200,
     "tiles": [
         {
-            "top": "City",
-            "right": "City",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
             "top": "Field",
-            "right": "City",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "Field",
-            "right": "City",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "Field",
-            "right": "City",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
             "right": "Field",
             "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "City",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "City",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "City",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Field",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Field",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Field",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Field",
-            "left": "Road"
-        },
-        {
-            "top": "Road",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Road",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Road",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Road",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Road",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Road",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Road",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Road",
-            "right": "Field",
-            "bottom": "Road",
             "left": "Field"
         },
         {
             "top": "Field",
             "right": "Field",
             "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
+            "left": "Field"
         },
         {
             "top": "Field",
             "right": "Road",
-            "bottom": "Road",
+            "bottom": "Field",
             "left": "Road"
         },
         {
             "top": "Field",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Road",
+            "right": "Field",
             "bottom": "Road",
             "left": "Road"
         },
@@ -370,148 +40,16 @@
             "left": "Road"
         },
         {
-            "top": "Field",
+            "top": "City",
             "right": "Field",
             "bottom": "Field",
             "left": "Field"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "City",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Road",
-            "right": "City",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "Field",
-            "right": "Road",
-            "bottom": "Field",
-            "left": "Road"
-        },
-        {
-            "top": "Road",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "Field",
-            "right": "City",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "City",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "City",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "City",
-            "left": "City"
-        },
-        {
-            "top": "Field",
-            "right": "Road",
-            "bottom": "Field",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Road"
         },
         {
             "top": "City",
             "right": "Road",
-            "bottom": "Road",
-            "left": "City"
+            "bottom": "Field",
+            "left": "Road"
         },
         {
             "top": "City",
@@ -521,171 +59,57 @@
         },
         {
             "top": "City",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "City",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "City",
-            "left": "City"
-        },
-        {
-            "top": "Road",
-            "right": "City",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "City",
             "right": "Road",
-            "bottom": "City",
+            "bottom": "Road",
             "left": "Field"
         },
         {
-            "top": "Road",
+            "top": "City",
             "right": "Road",
-            "bottom": "City",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
             "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "City",
-            "left": "City"
-        },
-        {
-            "top": "Road",
-            "right": "Field",
-            "bottom": "City",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "City",
-            "left": "City"
+            "left": "Road"
         },
         {
             "top": "City",
             "right": "City",
             "bottom": "Road",
             "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "City",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "City",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "City",
-            "left": "Field"
         },
         {
             "top": "City",
             "right": "City",
             "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "Road",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Road",
-            "right": "City",
-            "bottom": "City",
             "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Road",
-            "right": "City",
-            "bottom": "City",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "City",
-            "left": "City"
         },
         {
             "top": "Field",
             "right": "City",
+            "bottom": "Field",
+            "left": "City"
+        },
+        {
+            "top": "City",
+            "right": "Field",
             "bottom": "City",
             "left": "Field"
         },
         {
             "top": "City",
-            "right": "Road",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "Road",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Road",
             "right": "City",
             "bottom": "Field",
-            "left": "Road"
+            "left": "City"
         },
         {
             "top": "City",
-            "right": "Road",
-            "bottom": "City",
-            "left": "Field"
-        },
-        {
-            "top": "Field",
-            "right": "Road",
-            "bottom": "City",
+            "right": "City",
+            "bottom": "Road",
             "left": "City"
         },
         {
             "top": "City",
             "right": "City",
             "bottom": "City",
-            "left": "Road"
+            "left": "City"
         },
         {
             "top": "Field",
@@ -696,20 +120,20 @@
         {
             "top": "Field",
             "right": "Water",
+            "bottom": "Field",
+            "left": "Water"
+        },
+        {
+            "top": "Field",
+            "right": "Field",
             "bottom": "Water",
-            "left": "Field"
+            "left": "Water"
         },
         {
             "top": "Field",
             "right": "Water",
-            "bottom": "Water",
-            "left": "Field"
-        },
-        {
-            "top": "Water",
-            "right": "Field",
-            "bottom": "Water",
-            "left": "Road"
+            "bottom": "Road",
+            "left": "Water"
         },
         {
             "top": "Road",
@@ -718,28 +142,10 @@
             "left": "Water"
         },
         {
-            "top": "Water",
-            "right": "Field",
-            "bottom": "Water",
-            "left": "Field"
-        },
-        {
-            "top": "Water",
-            "right": "Field",
-            "bottom": "Water",
-            "left": "Field"
-        },
-        {
-            "top": "Water",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "Water",
-            "right": "City",
-            "bottom": "Water",
-            "left": "Road"
+            "top": "City",
+            "right": "Water",
+            "bottom": "Road",
+            "left": "Water"
         },
         {
             "top": "City",
@@ -748,196 +154,10 @@
             "left": "Water"
         },
         {
-            "top": "Road",
-            "right": "Water",
-            "bottom": "Road",
+            "top": "City",
+            "right": "City",
+            "bottom": "Water",
             "left": "Water"
-        },
-        {
-            "top": "Water",
-            "right": "City",
-            "bottom": "City",
-            "left": "Water"
-        },
-        {
-            "top": "Road",
-            "right": "City",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "Field",
-            "right": "City",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "Field",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Road",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Road",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Field",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "Field"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "Field",
-            "right": "City",
-            "bottom": "City",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "City",
-            "bottom": "Field",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "City"
-        },
-        {
-            "top": "City",
-            "right": "Field",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "City",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Field"
-        },
-        {
-            "top": "Road",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Road"
-        },
-        {
-            "top": "Field",
-            "right": "Road",
-            "bottom": "Road",
-            "left": "Road"
         }
     ]
 }
