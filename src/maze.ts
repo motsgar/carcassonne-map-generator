@@ -387,6 +387,8 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
                 maze.tiles[y][x].walls.right.open = true;
         }
     }
+    shouldProcessMaze = true;
+    processingMaze = false;
 };
 
 export { createMaze, printMaze, processMaze, setSleepMs, cancelProcessingMaze };
