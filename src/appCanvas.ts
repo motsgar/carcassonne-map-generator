@@ -211,10 +211,16 @@ const draw = (): void => {
                 Math.floor(posOffset.y) - 2
             );
 
-            if (_currentWalls.includes(_maze.tiles[highlight.y][highlight.x].walls.right)) {
+            if (
+                _currentWalls.includes(_maze.tiles[highlight.y][highlight.x].walls.right) ||
+                _maze.tiles[highlight.y][highlight.x].walls.right.open
+            ) {
                 appCtx.fillRect(Math.floor(pos.x + posOffset.x), Math.floor(pos.y) + 2, 2, Math.floor(posOffset.y) - 2);
             }
-            if (_currentWalls.includes(_maze.tiles[highlight.y][highlight.x].walls.bottom)) {
+            if (
+                _currentWalls.includes(_maze.tiles[highlight.y][highlight.x].walls.bottom) ||
+                _maze.tiles[highlight.y][highlight.x].walls.bottom.open
+            ) {
                 appCtx.fillRect(Math.floor(pos.x) + 2, Math.floor(pos.y + posOffset.y), Math.floor(posOffset.x) - 2, 2);
             }
 
