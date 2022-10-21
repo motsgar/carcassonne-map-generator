@@ -57,14 +57,18 @@ gui.add(guiInfo, 'Animation speed', 1, 1000, 2).onChange((value: number) => {
     controls.animationSpeed = value;
     controls.emit('animationSpeed', value);
 });
-gui.add(guiInfo, 'Width').onFinishChange((value: number) => {
-    controls.width = value;
-    controls.emit('width', value);
-});
-gui.add(guiInfo, 'Height').onFinishChange((value: number) => {
-    controls.height = value;
-    controls.emit('height', value);
-});
+gui.add(guiInfo, 'Width')
+    .min(1)
+    .onFinishChange((value: number) => {
+        controls.width = value;
+        controls.emit('width', value);
+    });
+gui.add(guiInfo, 'Height')
+    .min(1)
+    .onFinishChange((value: number) => {
+        controls.height = value;
+        controls.emit('height', value);
+    });
 gui.add(guiInfo, 'Tilemap upload');
 
 export const disableStartAnimation = (): void => {
