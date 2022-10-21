@@ -46,25 +46,30 @@ controls.on('resetAnimation', async () => {
     enableStartAnimation();
 });
 
-controls.on('animationSpeed', (speed: number) => {
+controls.on('animationSpeed', (speed) => {
     setSleepMs(getSleepMs(speed));
 });
 
-controls.on('width', async (width: number) => {
+controls.on('width', async (width) => {
     await cancelProcessingMaze();
     maze = createMaze(width, controls.height);
     ui.setMaze(maze);
     enableStartAnimation();
 });
 
-controls.on('height', async (height: number) => {
+controls.on('height', async (height) => {
     await cancelProcessingMaze();
     maze = createMaze(controls.width, height);
     ui.setMaze(maze);
     enableStartAnimation();
 });
 
-controls.on('tilemapUpload', (tilemapDataString: string) => {
+controls.on('tilemapJsonUpload', (tilemapDataString) => {
+    if (tilemapDataString === '') {
+        // TODO: load default tilemap
+        console.log('tilemap is reset');
+        return;
+    }
     let tilemapDataObject;
     try {
         tilemapDataObject = JSON.parse(tilemapDataString);
@@ -82,6 +87,16 @@ controls.on('tilemapUpload', (tilemapDataString: string) => {
         return;
     }
     const tiles = createTilesFromTilemapData(tilemapData);
+    console.log(tiles);
+});
+
+controls.on('tilemapImageUpload', (image) => {
+    if (image === undefined) {
+        // TODO: load default image
+        console.log('image is reset');
+        return;
+    }
+    console.log(image);
 });
 
 /*
