@@ -1,25 +1,88 @@
-import controls from './controls';
+import controls, { disableStartAnimation, enableStartAnimation } from './controls';
 import { fullCollapse, printMap, createMap, Side } from './collapse';
-import { createTilesFromTilemapData, limitMapToMaze, parseTilemapData, sleep } from './utils';
-import { createMaze, processMaze, printMaze, MazeEvent, setSleepMs } from './maze';
+import { createTilesFromTilemapData, limitMapToMaze, parseTilemapData } from './utils';
+import { createMaze, processMaze, MazeEvent, setSleepMs, cancelProcessingMaze } from './maze';
 import { ZodError } from 'zod';
 import * as ui from './appCanvas';
 
-const width = 150;
-const height = 130;
+let maze = createMaze(controls.width, controls.height);
+ui.setMaze(maze);
+
+const mazeProcessingCallback = (event: MazeEvent): void => {
+    switch (event.type) {
+        case 'event1':
+            ui.highlightCell(event.x, event.y, 0.3);
+            break;
+        case 'event2':
+            ui.highlightCell(event.x, event.y, 0.1);
+            ui.setCurrentPath(event.currentPath);
+            break;
+        case 'event3':
+            ui.setCurrentPath({ cells: [], walls: [] });
+            break;
+    }
+};
+
+const startAnimation = async (): Promise<void> => {
+    await processMaze(maze, mazeProcessingCallback);
+};
 
 const getSleepMs = (animationSpeed: number): number => {
     const sleepMs = 691.1 - Math.log(animationSpeed + 1) * 100;
-    console.log(sleepMs);
     return sleepMs;
 };
+setSleepMs(getSleepMs(controls.animationSpeed));
+
+controls.on('startAnimation', async () => {
+    disableStartAnimation();
+    await cancelProcessingMaze();
+    startAnimation();
+});
+
+controls.on('resetAnimation', async () => {
+    await cancelProcessingMaze();
+    enableStartAnimation();
+});
 
 controls.on('animationSpeed', (speed: number) => {
     setSleepMs(getSleepMs(speed));
 });
 
-setSleepMs(120);
+controls.on('width', async (width: number) => {
+    await cancelProcessingMaze();
+    maze = createMaze(width, controls.height);
+    ui.setMaze(maze);
+    enableStartAnimation();
+});
 
+controls.on('height', async (height: number) => {
+    await cancelProcessingMaze();
+    maze = createMaze(controls.width, height);
+    ui.setMaze(maze);
+    enableStartAnimation();
+});
+
+controls.on('tilemapUpload', (tilemapDataString: string) => {
+    let tilemapDataObject;
+    try {
+        tilemapDataObject = JSON.parse(tilemapDataString);
+    } catch (e) {
+        console.error(e);
+        return;
+    }
+    let tilemapData;
+    try {
+        tilemapData = parseTilemapData(tilemapDataObject);
+    } catch (err) {
+        if (err instanceof ZodError) {
+            console.log(err.flatten());
+        }
+        return;
+    }
+    const tiles = createTilesFromTilemapData(tilemapData);
+});
+
+/*
 fetch('/defaultTilemap.json')
     .then((res) => res.json())
     .then(async (rawTilemapData) => {
@@ -34,7 +97,6 @@ fetch('/defaultTilemap.json')
         }
         const tiles = createTilesFromTilemapData(tilemapData);
 
-        const maze = createMaze(width, height);
         ui.setMaze(maze);
 
         console.time('processMaze');
@@ -56,7 +118,6 @@ fetch('/defaultTilemap.json')
         printMaze(maze);
 
         await sleep(5000);
-        /*
         const map = createMap(width, height, tiles);
 
         console.log('empty map:');
@@ -80,5 +141,5 @@ fetch('/defaultTilemap.json')
         console.timeEnd('time for full collapse');
         console.log('map after full collapse:');
         printMap(map);
-        */
     });
+*/

@@ -28,9 +28,12 @@ export type Maze = {
 
 export type MazeEvent =
     | {
-          type: 'event1' | 'event3';
+          type: 'event1';
           x: number;
           y: number;
+      }
+    | {
+          type: 'event3';
       }
     | {
           type: 'event2';
@@ -185,12 +188,6 @@ const printMaze = (maze: Maze): void => {
     console.log(outputString);
 };
 
-let sleepMs = 0;
-
-const setSleepMs = (ms: number): void => {
-    sleepMs = ms;
-};
-
 const getCurrentPath = (
     maze: Maze,
     startTile: MazeCell,
@@ -224,9 +221,39 @@ const getCurrentPath = (
     return { cells, walls };
 };
 
+let processingMaze = false;
+let shouldProcessMaze = true;
+let mazeProcessingStartTime = 0;
+let mazeProcessingSleepsHappened = 0;
+
+let sleepMs = 0;
+
+const setSleepMs = (ms: number): void => {
+    const timeShouldTaken = sleepMs * mazeProcessingSleepsHappened;
+    const newTimeShouldTaken = ms * mazeProcessingSleepsHappened;
+    mazeProcessingStartTime += timeShouldTaken - newTimeShouldTaken;
+    sleepMs = ms;
+};
+
+const cancelProcessingMaze = (): Promise<void> => {
+    if (processingMaze) {
+        shouldProcessMaze = false;
+        return new Promise((resolve) => {
+            const interval = setInterval(() => {
+                if (!processingMaze) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 10);
+        });
+    }
+    return Promise.resolve();
+};
+
 const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<void> => {
-    const startTime = Date.now();
-    let sleepsHappened = 0;
+    processingMaze = true;
+    mazeProcessingStartTime = Date.now();
+    mazeProcessingSleepsHappened = 0;
     // randomly pick first cell to be part of maze
     maze.tiles[(Math.random() * maze.height) | 0][(Math.random() * maze.width) | 0].isMaze = true;
 
@@ -241,10 +268,18 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
         let currentMazeTile = startTile;
 
         if (sleepMs > 0) {
-            sleepsHappened++;
+            if (!shouldProcessMaze) {
+                shouldProcessMaze = true;
+                processingMaze = false;
+
+                mazeEvent?.({ type: 'event3' });
+
+                return;
+            }
+            mazeProcessingSleepsHappened++;
             const currentTime = Date.now();
-            const timeShouldHavePassed = sleepMs * sleepsHappened;
-            const timePassed = currentTime - startTime;
+            const timeShouldHavePassed = sleepMs * mazeProcessingSleepsHappened;
+            const timePassed = currentTime - mazeProcessingStartTime;
             if (timePassed < timeShouldHavePassed) {
                 await sleep(timeShouldHavePassed - timePassed);
             }
@@ -282,10 +317,16 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
             }
 
             if (sleepMs > 0) {
-                sleepsHappened++;
+                if (!shouldProcessMaze) {
+                    shouldProcessMaze = true;
+                    processingMaze = false;
+                    mazeEvent?.({ type: 'event3' });
+                    return;
+                }
+                mazeProcessingSleepsHappened++;
                 const currentTime = Date.now();
-                const timeShouldHavePassed = sleepMs * sleepsHappened;
-                const timePassed = currentTime - startTime;
+                const timeShouldHavePassed = sleepMs * mazeProcessingSleepsHappened;
+                const timePassed = currentTime - mazeProcessingStartTime;
                 if (timePassed < timeShouldHavePassed) {
                     await sleep(timeShouldHavePassed - timePassed);
                 }
@@ -324,8 +365,6 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
         }
         mazeEvent?.({
             type: 'event3',
-            x: currentMazeTile.x,
-            y: currentMazeTile.y,
         });
     }
 
@@ -350,4 +389,4 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
     }
 };
 
-export { createMaze, printMaze, processMaze, setSleepMs };
+export { createMaze, printMaze, processMaze, setSleepMs, cancelProcessingMaze };
