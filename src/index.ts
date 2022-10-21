@@ -41,6 +41,8 @@ controls.on('startAnimation', async () => {
 
 controls.on('resetAnimation', async () => {
     await cancelProcessingMaze();
+    maze = createMaze(controls.width, controls.height);
+    ui.setMaze(maze);
     enableStartAnimation();
 });
 
