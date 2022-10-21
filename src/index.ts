@@ -11,10 +11,10 @@ ui.setMaze(maze);
 const mazeProcessingCallback = (event: MazeEvent): void => {
     switch (event.type) {
         case 'event1':
-            ui.highlightCell(event.x, event.y, 0.3);
+            ui.highlightCell(event.x, event.y, (1010 - controls.animationSpeed) / 1000);
             break;
         case 'event2':
-            ui.highlightCell(event.x, event.y, 0.1);
+            ui.highlightCell(event.x, event.y, (1010 - controls.animationSpeed) / 1000 / 3);
             ui.setCurrentPath(event.currentPath);
             break;
         case 'event3':
