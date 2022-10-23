@@ -137,6 +137,12 @@
         },
         {
             "top": "Road",
+            "right": "Water",
+            "bottom": "Road",
+            "left": "Water"
+        },
+        {
+            "top": "Road",
             "right": "Road",
             "bottom": "Water",
             "left": "Water"
