@@ -1,7 +1,15 @@
 import controls, { disableStartAnimation, enableStartAnimation } from './controls';
-import { fullCollapse, printMap, createMap, Side, Tile } from './collapse';
+import { fullCollapse, createMap, Side, Tile } from './collapse';
 import { createTilesFromTilemapData, limitMapToMaze, parseTilemapData, TilemapData } from './utils';
-import { createMaze, processMaze, MazeEvent, setSleepMs, cancelProcessingMaze } from './maze';
+import {
+    createMaze,
+    processMaze,
+    MazeEvent,
+    setSleepMs,
+    cancelProcessingMaze,
+    setPathPercentage,
+    setRandomWallRemovePercentage,
+} from './maze';
 import { ZodError } from 'zod';
 import * as ui from './appCanvas';
 
@@ -135,6 +143,14 @@ controls.on('tilemapImageUpload', (image) => {
     currentTilemap.image = image;
     updateCarassonneMap();
     if (currentTilemap.tilemapData !== undefined) ui.setCurrentTilemap(image, currentTilemap.tilemapData);
+});
+
+controls.on('mazePathPercentage', (percentage) => {
+    setPathPercentage(percentage);
+});
+
+controls.on('randomWallRemovePercentage', (percentage) => {
+    setRandomWallRemovePercentage(percentage);
 });
 
 const fetchPromises: [Promise<unknown>, Promise<HTMLImageElement>] = [

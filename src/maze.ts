@@ -1,8 +1,5 @@
 import { Direction, sleep } from './utils';
 
-const mazePathProcentage = 0.5;
-const randomWallRemoveProcentage = 0.4;
-
 export type Wall = { open: boolean };
 
 export type MazeCell = {
@@ -218,6 +215,8 @@ let processingMaze = false;
 let shouldProcessMaze = true;
 let mazeProcessingStartTime = 0;
 let mazeProcessingSleepsHappened = 0;
+let mazePathPercentage = 0;
+let randomWallRemovePercentage = 0;
 
 let sleepMs = 0;
 
@@ -226,6 +225,14 @@ const setSleepMs = (ms: number): void => {
     const newTimeShouldTaken = ms * mazeProcessingSleepsHappened;
     mazeProcessingStartTime += timeShouldTaken - newTimeShouldTaken;
     sleepMs = ms;
+};
+
+const setPathPercentage = (percentage: number): void => {
+    mazePathPercentage = percentage;
+};
+
+const setRandomWallRemovePercentage = (percentage: number): void => {
+    randomWallRemovePercentage = percentage;
 };
 
 const cancelProcessingMaze = (): Promise<void> => {
@@ -254,7 +261,7 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
 
     while (true) {
         nonMazeTiles = nonMazeTiles.filter((tile) => !tile.isMaze);
-        if (nonMazeTiles.length < maze.height * maze.width * (1 - mazePathProcentage) || nonMazeTiles.length === 0)
+        if (nonMazeTiles.length < maze.height * maze.width * (1 - mazePathPercentage) || nonMazeTiles.length === 0)
             break;
 
         const startTile = nonMazeTiles[(Math.random() * nonMazeTiles.length) | 0];
@@ -368,14 +375,14 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
                 y < maze.height - 1 &&
                 maze.tiles[y][x].isMaze &&
                 maze.tiles[y + 1][x].isMaze &&
-                Math.random() < randomWallRemoveProcentage
+                Math.random() < randomWallRemovePercentage
             )
                 maze.tiles[y][x].walls.bottom.open = true;
             if (
                 x < maze.width - 1 &&
                 maze.tiles[y][x].isMaze &&
                 maze.tiles[y][x + 1].isMaze &&
-                Math.random() < randomWallRemoveProcentage
+                Math.random() < randomWallRemovePercentage
             )
                 maze.tiles[y][x].walls.right.open = true;
         }
@@ -384,4 +391,12 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
     processingMaze = false;
 };
 
-export { createMaze, printMaze, processMaze, setSleepMs, cancelProcessingMaze };
+export {
+    createMaze,
+    printMaze,
+    processMaze,
+    setSleepMs,
+    cancelProcessingMaze,
+    setPathPercentage,
+    setRandomWallRemovePercentage,
+};
