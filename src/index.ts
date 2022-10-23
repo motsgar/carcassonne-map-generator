@@ -85,14 +85,14 @@ controls.on('animationSpeed', (speed) => {
     setSleepMs(getSleepMs(speed));
 });
 
-controls.on('width', async (width) => {
+controls.on('width', async () => {
     await cancelProcessingMaze();
     updateMaze();
     updateCarassonneMap();
     enableStartAnimation();
 });
 
-controls.on('height', async (height) => {
+controls.on('height', async () => {
     await cancelProcessingMaze();
     updateMaze();
     updateCarassonneMap();
