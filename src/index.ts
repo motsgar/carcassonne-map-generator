@@ -66,7 +66,6 @@ const getSleepMs = (animationSpeed: number): number => {
     const sleepMs = 691.1 - Math.log(animationSpeed + 1) * 100;
     return sleepMs;
 };
-setSleepMs(getSleepMs(controls.animationSpeed));
 
 controls.on('startAnimation', async () => {
     disableStartAnimation();
@@ -184,3 +183,7 @@ Promise.all(fetchPromises).then(([tilemapDataObject, tilemapImage]) => {
     updateCarassonneMap();
     ui.setCurrentTilemap(tilemapImage, tilemapData);
 });
+
+setSleepMs(getSleepMs(controls.animationSpeed));
+setPathPercentage(controls.mazePathPercentage);
+setRandomWallRemovePercentage(controls.randomWallRemovePercentage);
