@@ -1,13 +1,23 @@
 import controls, { disableStartAnimation, enableStartAnimation } from './controls';
 import { fullCollapse, printMap, createMap, Side, Tile } from './collapse';
-import { createTilesFromTilemapData, limitMapToMaze, parseTilemapData } from './utils';
+import { createTilesFromTilemapData, limitMapToMaze, parseTilemapData, TilemapData } from './utils';
 import { createMaze, processMaze, MazeEvent, setSleepMs, cancelProcessingMaze } from './maze';
 import { ZodError } from 'zod';
 import * as ui from './appCanvas';
 
 let maze = createMaze(controls.width, controls.height);
 ui.setMaze(maze);
+
 let tiles: Tile[] = [];
+let map = createMap(controls.width, controls.height, tiles);
+ui.setCurrentCarcassonneMap(map);
+
+let originalTilemapData: TilemapData | undefined = undefined;
+let originalTilemapImage: HTMLImageElement | undefined = undefined;
+const currentTilemap: { image: HTMLImageElement | undefined; tilemapData: TilemapData | undefined } = {
+    image: undefined,
+    tilemapData: undefined,
+};
 
 const mazeProcessingCallback = (event: MazeEvent): void => {
     switch (event.type) {
@@ -26,15 +36,22 @@ const mazeProcessingCallback = (event: MazeEvent): void => {
 
 const startAnimation = async (): Promise<void> => {
     await processMaze(maze, mazeProcessingCallback);
-    const map = createMap(controls.width, controls.height, tiles);
-    ui.setCurrentCarcassonneMap(map);
     limitMapToMaze(map, maze, {
         sideType: Side.Road,
         allowTilesOutsideWithSide: false,
         allowSideConnections: false,
     });
     fullCollapse(map);
-    printMap(map);
+};
+
+const updateMaze = (): void => {
+    maze = createMaze(controls.width, controls.height);
+    ui.setMaze(maze);
+};
+
+const updateCarassonneMap = (): void => {
+    map = createMap(controls.width, controls.height, tiles);
+    ui.setCurrentCarcassonneMap(map);
 };
 
 const getSleepMs = (animationSpeed: number): number => {
@@ -51,8 +68,8 @@ controls.on('startAnimation', async () => {
 
 controls.on('resetAnimation', async () => {
     await cancelProcessingMaze();
-    maze = createMaze(controls.width, controls.height);
-    ui.setMaze(maze);
+    updateMaze();
+    updateCarassonneMap();
     enableStartAnimation();
 });
 
@@ -62,24 +79,27 @@ controls.on('animationSpeed', (speed) => {
 
 controls.on('width', async (width) => {
     await cancelProcessingMaze();
-    maze = createMaze(width, controls.height);
-    ui.setMaze(maze);
+    updateMaze();
+    updateCarassonneMap();
     enableStartAnimation();
 });
 
 controls.on('height', async (height) => {
     await cancelProcessingMaze();
-    maze = createMaze(controls.width, height);
-    ui.setMaze(maze);
+    updateMaze();
+    updateCarassonneMap();
     enableStartAnimation();
 });
 
 controls.on('tilemapJsonUpload', (tilemapDataString) => {
     if (tilemapDataString === '') {
-        // TODO: load default tilemap
-        console.log('tilemap is reset');
+        currentTilemap.tilemapData = originalTilemapData;
+        if (originalTilemapData !== undefined) tiles = createTilesFromTilemapData(originalTilemapData);
+        if (originalTilemapData !== undefined && currentTilemap.image !== undefined)
+            ui.setCurrentTilemap(currentTilemap.image, originalTilemapData);
         return;
     }
+
     let tilemapDataObject;
     try {
         tilemapDataObject = JSON.parse(tilemapDataString);
@@ -87,7 +107,7 @@ controls.on('tilemapJsonUpload', (tilemapDataString) => {
         console.error(e);
         return;
     }
-    let tilemapData;
+    let tilemapData: TilemapData;
     try {
         tilemapData = parseTilemapData(tilemapDataObject);
     } catch (err) {
@@ -97,16 +117,24 @@ controls.on('tilemapJsonUpload', (tilemapDataString) => {
         return;
     }
     tiles = createTilesFromTilemapData(tilemapData);
-    console.log(tiles);
+    currentTilemap.tilemapData = tilemapData;
+
+    updateCarassonneMap();
+    if (currentTilemap.image !== undefined) ui.setCurrentTilemap(currentTilemap.image, tilemapData);
 });
 
 controls.on('tilemapImageUpload', (image) => {
     if (image === undefined) {
-        // TODO: load default image
-        console.log('image is reset');
+        currentTilemap.image = originalTilemapImage;
+        if (originalTilemapImage !== undefined && currentTilemap.tilemapData !== undefined)
+            ui.setCurrentTilemap(originalTilemapImage, currentTilemap.tilemapData);
+
         return;
     }
-    console.log(image);
+
+    currentTilemap.image = image;
+    updateCarassonneMap();
+    if (currentTilemap.tilemapData !== undefined) ui.setCurrentTilemap(image, currentTilemap.tilemapData);
 });
 
 const fetchPromises: [Promise<unknown>, Promise<HTMLImageElement>] = [
@@ -129,7 +157,14 @@ Promise.all(fetchPromises).then(([tilemapDataObject, tilemapImage]) => {
         }
         return;
     }
+
+    originalTilemapImage = tilemapImage;
+    originalTilemapData = tilemapData;
+    currentTilemap.image = tilemapImage;
+    currentTilemap.tilemapData = tilemapData;
+
     tiles = createTilesFromTilemapData(tilemapData);
 
+    updateCarassonneMap();
     ui.setCurrentTilemap(tilemapImage, tilemapData);
 });
