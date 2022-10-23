@@ -2,6 +2,13 @@ import { CarcassonneMap, Side, limitTilePossibilities, Tile } from './collapse';
 import { Maze } from './maze';
 import * as zod from 'zod';
 
+export enum Direction {
+    Up,
+    Right,
+    Down,
+    Left,
+}
+
 export type MazeLimitOptions = {
     sideType: Side;
     allowSideConnections: boolean;
@@ -89,6 +96,8 @@ const parseTilemapData = (tilemapData: unknown): TilemapData => {
                 right: Side[tile.right as keyof typeof Side],
                 bottom: Side[tile.bottom as keyof typeof Side],
                 left: Side[tile.left as keyof typeof Side],
+                direction: Direction.Up,
+                tilemapIndex: index,
             };
         }),
     };
@@ -102,24 +111,32 @@ const createTilesFromTilemapData = (tilemapData: TilemapData): Tile[] => {
             right: tile.right,
             bottom: tile.bottom,
             left: tile.left,
+            tilemapIndex: tile.tilemapIndex,
+            direction: Direction.Up,
         });
         tiles.push({
             top: tile.right,
             right: tile.bottom,
             bottom: tile.left,
             left: tile.top,
+            tilemapIndex: tile.tilemapIndex,
+            direction: Direction.Left,
         });
         tiles.push({
             top: tile.bottom,
             right: tile.left,
             bottom: tile.top,
             left: tile.right,
+            tilemapIndex: tile.tilemapIndex,
+            direction: Direction.Down,
         });
         tiles.push({
             top: tile.left,
             right: tile.top,
             bottom: tile.right,
             left: tile.bottom,
+            tilemapIndex: tile.tilemapIndex,
+            direction: Direction.Right,
         });
     }
     return tiles;
@@ -131,7 +148,7 @@ const createAllPossibleTiles = (): Tile[] => {
         for (const right of Object.values(Side).filter((e) => typeof e === 'number') as Side[]) {
             for (const bottom of Object.values(Side).filter((e) => typeof e === 'number') as Side[]) {
                 for (const left of Object.values(Side).filter((e) => typeof e === 'number') as Side[]) {
-                    tiles.push({ top, right, bottom, left });
+                    tiles.push({ top, right, bottom, left, direction: Direction.Up, tilemapIndex: -1 });
                 }
             }
         }

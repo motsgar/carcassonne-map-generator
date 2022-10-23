@@ -1,5 +1,5 @@
 import controls, { disableStartAnimation, enableStartAnimation } from './controls';
-import { fullCollapse, printMap, createMap, Side } from './collapse';
+import { fullCollapse, printMap, createMap, Side, Tile } from './collapse';
 import { createTilesFromTilemapData, limitMapToMaze, parseTilemapData } from './utils';
 import { createMaze, processMaze, MazeEvent, setSleepMs, cancelProcessingMaze } from './maze';
 import { ZodError } from 'zod';
@@ -7,6 +7,7 @@ import * as ui from './appCanvas';
 
 let maze = createMaze(controls.width, controls.height);
 ui.setMaze(maze);
+let tiles: Tile[] = [];
 
 const mazeProcessingCallback = (event: MazeEvent): void => {
     switch (event.type) {
@@ -25,6 +26,15 @@ const mazeProcessingCallback = (event: MazeEvent): void => {
 
 const startAnimation = async (): Promise<void> => {
     await processMaze(maze, mazeProcessingCallback);
+    const map = createMap(controls.width, controls.height, tiles);
+    ui.setCurrentCarcassonneMap(map);
+    limitMapToMaze(map, maze, {
+        sideType: Side.Road,
+        allowTilesOutsideWithSide: false,
+        allowSideConnections: false,
+    });
+    fullCollapse(map);
+    printMap(map);
 };
 
 const getSleepMs = (animationSpeed: number): number => {
@@ -86,7 +96,7 @@ controls.on('tilemapJsonUpload', (tilemapDataString) => {
         }
         return;
     }
-    const tiles = createTilesFromTilemapData(tilemapData);
+    tiles = createTilesFromTilemapData(tilemapData);
     console.log(tiles);
 });
 
@@ -99,64 +109,27 @@ controls.on('tilemapImageUpload', (image) => {
     console.log(image);
 });
 
-/*
-fetch('/defaultTilemap.json')
-    .then((res) => res.json())
-    .then(async (rawTilemapData) => {
-        let tilemapData;
-        try {
-            tilemapData = parseTilemapData(rawTilemapData);
-        } catch (err) {
-            if (err instanceof ZodError) {
-                console.log(err.flatten());
-            }
-            return;
+const fetchPromises: [Promise<unknown>, Promise<HTMLImageElement>] = [
+    fetch('/defaultTilemap.json').then((res) => res.json()),
+    new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = '/defaultTiles.png';
+    }),
+];
+
+Promise.all(fetchPromises).then(([tilemapDataObject, tilemapImage]) => {
+    let tilemapData;
+    try {
+        tilemapData = parseTilemapData(tilemapDataObject);
+    } catch (err) {
+        if (err instanceof ZodError) {
+            console.log(err.flatten());
         }
-        const tiles = createTilesFromTilemapData(tilemapData);
+        return;
+    }
+    tiles = createTilesFromTilemapData(tilemapData);
 
-        ui.setMaze(maze);
-
-        console.time('processMaze');
-        await processMaze(maze, (event: MazeEvent) => {
-            switch (event.type) {
-                case 'event1':
-                    ui.highlightCell(event.x, event.y, 0.3);
-                    break;
-                case 'event2':
-                    ui.highlightCell(event.x, event.y, 0.1);
-                    ui.setCurrentPath(event.currentPath);
-                    break;
-                case 'event3':
-                    ui.setCurrentPath({ cells: [], walls: [] });
-                    break;
-            }
-        });
-        console.timeEnd('processMaze');
-        printMaze(maze);
-
-        await sleep(5000);
-        const map = createMap(width, height, tiles);
-
-        console.log('empty map:');
-        printMap(map);
-
-        console.time('time for maze limiting');
-        limitMapToMaze(map, maze, {
-            sideType: Side.Road,
-            allowSideConnections: false,
-            allowTilesOutsideWithSide: false,
-        });
-        console.timeEnd('time for maze limiting');
-
-        console.log('map after maze limit:');
-        printMap(map);
-
-        console.time('time for full collapse');
-
-        fullCollapse(map);
-
-        console.timeEnd('time for full collapse');
-        console.log('map after full collapse:');
-        printMap(map);
-    });
-*/
+    ui.setCurrentTilemap(tilemapImage, tilemapData);
+});

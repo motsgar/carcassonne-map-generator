@@ -1,14 +1,7 @@
-import { sleep } from './utils';
+import { Direction, sleep } from './utils';
 
 const mazePathProcentage = 0.5;
 const randomWallRemoveProcentage = 0.4;
-
-export enum Direction {
-    Up,
-    Right,
-    Down,
-    Left,
-}
 
 export type Wall = { open: boolean };
 

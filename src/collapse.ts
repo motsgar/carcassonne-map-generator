@@ -1,4 +1,4 @@
-import { shuffleArray } from './utils';
+import { Direction, shuffleArray } from './utils';
 
 export enum Side {
     Startpiece,
@@ -13,6 +13,8 @@ export type Tile = {
     right: Side;
     bottom: Side;
     left: Side;
+    tilemapIndex: number;
+    direction: Direction;
 };
 
 export type Dependency = {

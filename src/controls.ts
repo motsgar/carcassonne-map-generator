@@ -31,8 +31,8 @@ class ControlEvent extends EventEmitter {
         super();
 
         this.animationSpeed = 800;
-        this.width = 60;
-        this.height = 50;
+        this.width = 20;
+        this.height = 18;
     }
 }
 
