@@ -3,6 +3,7 @@ import { createMaze, processMaze } from './maze';
 import {
     createAllPossibleTiles,
     createTilesFromTilemapData,
+    Direction,
     limitMapToMaze,
     parseTilemapData,
     shuffleArray,
@@ -60,11 +61,56 @@ describe('when parsing tilemap data', () => {
             height: 10,
             tileSize: 1,
             tiles: [
-                { x: 0, y: 0, top: Side.Road, right: Side.Field, bottom: Side.Field, left: Side.City },
-                { x: 1, y: 0, top: Side.Road, right: Side.City, bottom: Side.Road, left: Side.Road },
-                { x: 0, y: 1, top: Side.Road, right: Side.City, bottom: Side.Road, left: Side.Road },
-                { x: 1, y: 1, top: Side.Road, right: Side.City, bottom: Side.Road, left: Side.Road },
-                { x: 0, y: 2, top: Side.Road, right: Side.City, bottom: Side.Road, left: Side.Road },
+                {
+                    x: 0,
+                    y: 0,
+                    top: Side.Road,
+                    right: Side.Field,
+                    bottom: Side.Field,
+                    left: Side.City,
+                    tilemapIndex: 0,
+                    direction: Direction.Up,
+                },
+                {
+                    x: 1,
+                    y: 0,
+                    top: Side.Road,
+                    right: Side.City,
+                    bottom: Side.Road,
+                    left: Side.Road,
+                    tilemapIndex: 1,
+                    direction: Direction.Up,
+                },
+                {
+                    x: 0,
+                    y: 1,
+                    top: Side.Road,
+                    right: Side.City,
+                    bottom: Side.Road,
+                    left: Side.Road,
+                    tilemapIndex: 2,
+                    direction: Direction.Up,
+                },
+                {
+                    x: 1,
+                    y: 1,
+                    top: Side.Road,
+                    right: Side.City,
+                    bottom: Side.Road,
+                    left: Side.Road,
+                    tilemapIndex: 3,
+                    direction: Direction.Up,
+                },
+                {
+                    x: 0,
+                    y: 2,
+                    top: Side.Road,
+                    right: Side.City,
+                    bottom: Side.Road,
+                    left: Side.Road,
+                    tilemapIndex: 4,
+                    direction: Direction.Up,
+                },
             ],
         });
     });
@@ -83,6 +129,8 @@ describe('creating tiles from tilemap data', () => {
                 right: Side.Road,
                 bottom: Side.Road,
                 left: Side.Road,
+                tilemapIndex: -1,
+                direction: Direction.Up,
             },
             {
                 x: 1,
@@ -91,6 +139,8 @@ describe('creating tiles from tilemap data', () => {
                 right: Side.Field,
                 bottom: Side.Field,
                 left: Side.Road,
+                tilemapIndex: -1,
+                direction: Direction.Up,
             },
         ],
     };
@@ -106,48 +156,64 @@ describe('creating tiles from tilemap data', () => {
                 right: Side.Road,
                 bottom: Side.Road,
                 left: Side.Road,
+                tilemapIndex: -1,
+                direction: Direction.Up,
             },
             {
                 top: Side.Road,
                 right: Side.Road,
                 bottom: Side.Road,
                 left: Side.Road,
+                tilemapIndex: -1,
+                direction: Direction.Left,
             },
             {
                 top: Side.Road,
                 right: Side.Road,
                 bottom: Side.Road,
                 left: Side.Road,
+                tilemapIndex: -1,
+                direction: Direction.Down,
             },
             {
                 top: Side.Road,
                 right: Side.Road,
                 bottom: Side.Road,
                 left: Side.Road,
+                tilemapIndex: -1,
+                direction: Direction.Right,
             },
             {
                 top: Side.Road,
                 right: Side.Field,
                 bottom: Side.Field,
                 left: Side.Road,
+                tilemapIndex: -1,
+                direction: Direction.Up,
             },
             {
                 top: Side.Field,
                 right: Side.Field,
                 bottom: Side.Road,
                 left: Side.Road,
+                tilemapIndex: -1,
+                direction: Direction.Left,
             },
             {
                 top: Side.Field,
                 right: Side.Road,
                 bottom: Side.Road,
                 left: Side.Field,
+                tilemapIndex: -1,
+                direction: Direction.Down,
             },
             {
                 top: Side.Road,
                 right: Side.Road,
                 bottom: Side.Field,
                 left: Side.Field,
+                tilemapIndex: -1,
+                direction: Direction.Right,
             },
         ]);
     });
@@ -174,7 +240,16 @@ describe('when limiting a map to a maze', () => {
     });
 
     it('fails to limit when insufficient tiles are available', () => {
-        const possibleTiles = [{ bottom: Side.Road, left: Side.Road, right: Side.Road, top: Side.Field }];
+        const possibleTiles = [
+            {
+                bottom: Side.Road,
+                left: Side.Road,
+                right: Side.Road,
+                top: Side.Field,
+                tilemapIndex: 0,
+                direction: Direction.Up,
+            },
+        ];
         const map = createMap(width, height, possibleTiles);
 
         expect(() => {

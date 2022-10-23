@@ -7,15 +7,29 @@ import {
     resetOldCellStates,
     Side,
 } from './collapse';
-import { createAllPossibleTiles } from './utils';
+import { createAllPossibleTiles, Direction } from './utils';
 
 describe('creating a map', () => {
     const mapWidth = 15;
     const mapHeight = 17;
 
     const possibleTiles = [
-        { bottom: Side.Road, left: Side.Road, right: Side.Road, top: Side.Road },
-        { bottom: Side.Road, left: Side.Field, right: Side.Field, top: Side.Field },
+        {
+            bottom: Side.Road,
+            left: Side.Road,
+            right: Side.Road,
+            top: Side.Road,
+            tilemapIndex: 0,
+            direction: Direction.Up,
+        },
+        {
+            bottom: Side.Road,
+            left: Side.Field,
+            right: Side.Field,
+            top: Side.Field,
+            tilemapIndex: 1,
+            direction: Direction.Up,
+        },
     ];
     const map = createMap(mapWidth, mapHeight, possibleTiles);
 
@@ -185,8 +199,22 @@ describe('limiting possible tiles', () => {
     it('leaves no possibilities left when not limiting using references of original possible tiles', () => {
         const map = createMap(mapWidth, mapHeight, possibleTiles);
         const limitedTiles = [
-            { bottom: Side.Road, left: Side.Road, right: Side.Road, top: Side.Road },
-            { bottom: Side.Road, left: Side.Field, right: Side.Field, top: Side.Field },
+            {
+                bottom: Side.Road,
+                left: Side.Road,
+                right: Side.Road,
+                top: Side.Road,
+                tilemapIndex: 0,
+                direction: Direction.Up,
+            },
+            {
+                bottom: Side.Road,
+                left: Side.Field,
+                right: Side.Field,
+                top: Side.Field,
+                tilemapIndex: 1,
+                direction: Direction.Up,
+            },
         ];
 
         limitTilePossibilities(map, 0, 0, limitedTiles);
@@ -200,7 +228,14 @@ describe('limiting possible tiles', () => {
 
     it('leaves no possibilities left when not collapsing using references of original possible tiles', () => {
         const map = createMap(mapWidth, mapHeight, possibleTiles);
-        const limitedTiles = { bottom: Side.Road, left: Side.Road, right: Side.Road, top: Side.Road };
+        const limitedTiles = {
+            bottom: Side.Road,
+            left: Side.Road,
+            right: Side.Road,
+            top: Side.Road,
+            tilemapIndex: 0,
+            direction: Direction.Up,
+        };
 
         collapse(map, 0, 0, limitedTiles);
 
@@ -307,7 +342,16 @@ describe('collapsing a map', () => {
     });
 
     it('fails to collapse a map when insufficient tiles are available', () => {
-        const possibleTiles = [{ bottom: Side.Road, left: Side.Road, right: Side.Road, top: Side.Field }];
+        const possibleTiles = [
+            {
+                bottom: Side.Road,
+                left: Side.Road,
+                right: Side.Road,
+                top: Side.Field,
+                tilemapIndex: 0,
+                direction: Direction.Up,
+            },
+        ];
         const map = createMap(mapWidth, mapHeight, possibleTiles);
 
         expect(() => {
