@@ -10,6 +10,7 @@ declare interface ControlEvent {
     emit(event: 'animationSpeed', speed: number): boolean;
     emit(event: 'width', width: number): boolean;
     emit(event: 'height', height: number): boolean;
+    emit(event: 'mazeWallThickness', width: number): boolean;
     emit(event: 'tilemapJsonUpload', tilemapJson: string): boolean;
     emit(event: 'tilemapImageUpload', image: HTMLImageElement | undefined): boolean;
     emit(event: 'mazePathPercentage', percentage: number): boolean;
@@ -20,6 +21,7 @@ declare interface ControlEvent {
     on(event: 'animationSpeed', listener: (speed: number) => void): this;
     on(event: 'width', listener: (width: number) => void): this;
     on(event: 'height', listener: (height: number) => void): this;
+    on(event: 'mazeWallThickness', listener: (width: number) => void): this;
     on(event: 'tilemapJsonUpload', listener: (tilemapJson: string) => void): this;
     on(event: 'tilemapImageUpload', listener: (image: HTMLImageElement | undefined) => void): this;
     on(event: 'mazePathPercentage', listener: (percentage: number) => void): this;
@@ -30,6 +32,7 @@ class ControlEvent extends EventEmitter {
     animationSpeed: number;
     width: number;
     height: number;
+    mazeWallThickness: number;
 
     mazePathPercentage: number;
     randomWallRemovePercentage: number;
@@ -40,6 +43,7 @@ class ControlEvent extends EventEmitter {
         this.animationSpeed = 800;
         this.width = 20;
         this.height = 18;
+        this.mazeWallThickness = 2;
 
         this.mazePathPercentage = 0.5;
         this.randomWallRemovePercentage = 0.4;
@@ -61,6 +65,7 @@ const guiInfo = {
     'Animation speed': controls.animationSpeed,
     Width: controls.width,
     Height: controls.height,
+    'Maze wall thickness': controls.mazeWallThickness,
     'Tilemap JSON upload': () => {
         tilemapJsonInputElement.click();
     },
@@ -89,6 +94,10 @@ gui.add(guiInfo, 'Height')
         controls.height = value;
         controls.emit('height', value);
     });
+gui.add(guiInfo, 'Maze wall thickness', 0, 20, 1).onChange((value: number) => {
+    controls.mazeWallThickness = value;
+    controls.emit('mazeWallThickness', value);
+});
 const tilemapJsonUploadController = gui.add(guiInfo, 'Tilemap JSON upload').name('Tilemap JSON upload (default)');
 const tilemapImageUploadController = gui.add(guiInfo, 'Tilemap image upload').name('Tilemap image upload (default)');
 gui.add(guiInfo, 'Maze path percentage', 0, 1, 0.01).onChange((value: number) => {

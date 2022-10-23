@@ -98,6 +98,10 @@ controls.on('height', async () => {
     enableStartAnimation();
 });
 
+controls.on('mazeWallThickness', async (thickness) => {
+    ui.setWallThickness(thickness);
+});
+
 controls.on('tilemapJsonUpload', (tilemapDataString) => {
     if (tilemapDataString === '') {
         currentTilemap.tilemapData = originalTilemapData;
@@ -187,3 +191,4 @@ Promise.all(fetchPromises).then(([tilemapDataObject, tilemapImage]) => {
 setSleepMs(getSleepMs(controls.animationSpeed));
 setPathPercentage(controls.mazePathPercentage);
 setRandomWallRemovePercentage(controls.randomWallRemovePercentage);
+ui.setWallThickness(controls.mazeWallThickness);

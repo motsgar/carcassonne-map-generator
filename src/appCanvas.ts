@@ -13,6 +13,8 @@ type Highlight = {
 const appCanvasElement = document.getElementById('app-canvas') as HTMLCanvasElement;
 const appCtx = appCanvasElement.getContext('2d')!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
 
+let mazeWallThickness = 0;
+
 let zoomLevel = 50;
 const zoomSpeed = 2000;
 let cameraPosX = 8;
@@ -28,6 +30,10 @@ let currentWalls: Wall[] = [];
 
 let currentTilemap: { image: HTMLImageElement; tilemapData: TilemapData } | undefined = undefined;
 let currentCarcassonneMap: CarcassonneMap | undefined = undefined;
+
+const setWallThickness = (width: number): void => {
+    mazeWallThickness = width;
+};
 
 const setMaze = (maze: Maze): void => {
     currentMaze = maze;
@@ -183,25 +189,30 @@ const draw = (): void => {
         const rightBottomPos = getPosOnCanvas({ x: currentMaze.width, y: currentMaze.height });
 
         appCtx.fillStyle = '#999999';
-        appCtx.fillRect(leftTopPos.x, leftTopPos.y, rightBottomPos.x - leftTopPos.x, rightBottomPos.y - leftTopPos.y);
+        appCtx.fillRect(
+            Math.floor(leftTopPos.x),
+            Math.floor(leftTopPos.y),
+            Math.floor(rightBottomPos.x) - Math.floor(leftTopPos.x),
+            Math.floor(rightBottomPos.y) - Math.floor(leftTopPos.y)
+        );
 
         appCtx.fillStyle = '#000000';
         for (let x = 0; x <= currentMaze.width; x++) {
             const pos = getPosOnCanvas({ x, y: 0 });
             appCtx.fillRect(
-                Math.floor(pos.x),
-                Math.floor(leftTopPos.y),
-                2,
-                Math.floor(rightBottomPos.y) - Math.floor(leftTopPos.y) + 2
+                Math.floor(pos.x) - Math.ceil(mazeWallThickness / 2),
+                Math.floor(leftTopPos.y) - Math.ceil(mazeWallThickness / 2),
+                mazeWallThickness,
+                Math.floor(rightBottomPos.y) - Math.floor(leftTopPos.y) + mazeWallThickness
             );
         }
         for (let y = 0; y <= currentMaze.height; y++) {
             const pos = getPosOnCanvas({ x: 0, y });
             appCtx.fillRect(
-                Math.floor(leftTopPos.x),
-                Math.floor(pos.y),
-                Math.floor(rightBottomPos.x) - Math.floor(leftTopPos.x) + 2,
-                2
+                Math.floor(leftTopPos.x) - Math.ceil(mazeWallThickness / 2),
+                Math.floor(pos.y) - Math.ceil(mazeWallThickness / 2),
+                Math.floor(rightBottomPos.x) - Math.floor(leftTopPos.x) + mazeWallThickness,
+                mazeWallThickness
             );
         }
 
@@ -224,29 +235,28 @@ const draw = (): void => {
                 }
                 if (shouldDrawBackground)
                     appCtx.fillRect(
-                        Math.floor(pos.x) + 2,
-                        Math.floor(pos.y) + 2,
-                        Math.floor(posOffset.x) - 2,
-                        Math.floor(posOffset.y) - 2
+                        Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
+                        Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
+                        Math.floor(posOffset.x) - mazeWallThickness,
+                        Math.floor(posOffset.y) - mazeWallThickness
                     );
 
-                if (shouldDrawArrow)
-                    drawArrow(pos.x + posOffset.x / 2 + 1, pos.y + posOffset.y / 2 + 1, tile.solverDirection);
+                if (shouldDrawArrow) drawArrow(pos.x + posOffset.x / 2, pos.y + posOffset.y / 2, tile.solverDirection);
 
                 if (tile.walls.right.open || currentWalls.includes(tile.walls.right)) {
                     appCtx.fillRect(
-                        Math.floor(pos.x + posOffset.x),
-                        Math.floor(pos.y) + 2,
-                        2,
-                        Math.floor(posOffset.y) - 2
+                        Math.floor(pos.x + posOffset.x) - Math.ceil(mazeWallThickness / 2),
+                        Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
+                        mazeWallThickness,
+                        Math.floor(posOffset.y) - mazeWallThickness
                     );
                 }
                 if (tile.walls.bottom.open || currentWalls.includes(tile.walls.bottom)) {
                     appCtx.fillRect(
-                        Math.floor(pos.x) + 2,
-                        Math.floor(pos.y + posOffset.y),
-                        Math.floor(posOffset.x) - 2,
-                        2
+                        Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
+                        Math.floor(pos.y + posOffset.y) - Math.ceil(mazeWallThickness / 2),
+                        Math.floor(posOffset.x) - mazeWallThickness,
+                        mazeWallThickness
                     );
                 }
             }
@@ -266,23 +276,55 @@ const draw = (): void => {
                     .padStart(2, '0');
 
             appCtx.fillRect(
-                Math.floor(pos.x) + 2,
-                Math.floor(pos.y) + 2,
-                Math.floor(posOffset.x) - 2,
-                Math.floor(posOffset.y) - 2
+                Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
+                Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
+                Math.floor(posOffset.x) - mazeWallThickness,
+                Math.floor(posOffset.y) - mazeWallThickness
             );
 
             if (
                 currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.right) ||
                 currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.right.open
             ) {
-                appCtx.fillRect(Math.floor(pos.x + posOffset.x), Math.floor(pos.y) + 2, 2, Math.floor(posOffset.y) - 2);
+                appCtx.fillRect(
+                    Math.floor(pos.x + posOffset.x) - Math.ceil(mazeWallThickness / 2),
+                    Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
+                    Math.ceil(mazeWallThickness / 2),
+                    Math.floor(posOffset.y) - mazeWallThickness
+                );
             }
             if (
                 currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.bottom) ||
                 currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.bottom.open
             ) {
-                appCtx.fillRect(Math.floor(pos.x) + 2, Math.floor(pos.y + posOffset.y), Math.floor(posOffset.x) - 2, 2);
+                appCtx.fillRect(
+                    Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
+                    Math.floor(pos.y + posOffset.y) - Math.ceil(mazeWallThickness / 2),
+                    Math.floor(posOffset.x) - mazeWallThickness,
+                    Math.ceil(mazeWallThickness / 2)
+                );
+            }
+            if (
+                currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.left) ||
+                currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.left.open
+            ) {
+                appCtx.fillRect(
+                    Math.floor(pos.x),
+                    Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
+                    Math.floor(mazeWallThickness / 2),
+                    Math.floor(posOffset.y) - mazeWallThickness
+                );
+            }
+            if (
+                currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.top) ||
+                currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.top.open
+            ) {
+                appCtx.fillRect(
+                    Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
+                    Math.floor(pos.y),
+                    Math.floor(posOffset.x) - mazeWallThickness,
+                    Math.floor(mazeWallThickness / 2)
+                );
             }
 
             highlight.currentDecay += dt / 1000;
@@ -370,4 +412,4 @@ window.addEventListener('resize', resizeCanvas, false);
 resizeCanvas();
 draw();
 
-export { setMaze, highlightCell, setCurrentPath, setCurrentTilemap, setCurrentCarcassonneMap };
+export { setMaze, highlightCell, setCurrentPath, setCurrentTilemap, setCurrentCarcassonneMap, setWallThickness };
