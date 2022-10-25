@@ -1,11 +1,11 @@
 import controls, { disableStartAnimation, enableStartAnimation } from './controls';
-import { fullCollapse, createMap, Side, Tile } from './collapse';
+import { fullCollapse, createMap, Side, Tile, CollapseEvent, setSleepMs as setCollapseSleepMs } from './collapse';
 import { createTilesFromTilemapData, limitMapToMaze, parseTilemapData, TilemapData } from './utils';
 import {
     createMaze,
     processMaze,
     MazeEvent,
-    setSleepMs,
+    setSleepMs as setMazeSleepMs,
     cancelProcessingMaze,
     setPathPercentage,
     setRandomWallRemovePercentage,
@@ -27,13 +27,18 @@ const currentTilemap: { image: HTMLImageElement | undefined; tilemapData: Tilema
     tilemapData: undefined,
 };
 
+const getSleepMs = (animationSpeed: number): number => {
+    const sleepMs = 691.1 - Math.log(animationSpeed + 1) * 100;
+    return sleepMs;
+};
+
 const mazeProcessingCallback = (event: MazeEvent): void => {
     switch (event.type) {
         case 'event1':
-            ui.highlightCell(event.x, event.y, (1010 - controls.animationSpeed) / 1000);
+            ui.highlightMazeCell(event.x, event.y, (1010 - controls.animationSpeed) / 1000);
             break;
         case 'event2':
-            ui.highlightCell(event.x, event.y, (1010 - controls.animationSpeed) / 1000 / 3);
+            ui.highlightMazeCell(event.x, event.y, (1010 - controls.animationSpeed) / 1000 / 3);
             ui.setCurrentPath(event.currentPath);
             break;
         case 'event3':
@@ -42,14 +47,40 @@ const mazeProcessingCallback = (event: MazeEvent): void => {
     }
 };
 
+const collapsingCallback = (event: CollapseEvent): void => {
+    switch (event.type) {
+        case 'initCheckTile':
+            ui.checkMapCell(event.x, event.y, event.tile);
+            break;
+        case 'setCheckTile':
+            ui.updateCheckMapCell(event.tile);
+            break;
+        case 'successTile':
+            ui.updateCheckMapCell(event.tile, event.progress);
+            break;
+        case 'checkSide':
+            ui.highlightMapCellCheck(
+                event.x,
+                event.y,
+                event.direction,
+                event.success,
+                (1010 - controls.animationSpeed) / 1000 / 3
+            );
+
+            break;
+    }
+};
+
 const startAnimation = async (): Promise<void> => {
     await processMaze(maze, mazeProcessingCallback);
-    limitMapToMaze(map, maze, {
+    setCollapseSleepMs(0);
+    await limitMapToMaze(map, maze, {
         sideType: Side.Road,
         allowTilesOutsideWithSide: false,
         allowSideConnections: false,
     });
-    fullCollapse(map);
+    setCollapseSleepMs(getSleepMs(controls.animationSpeed));
+    await fullCollapse(map, collapsingCallback);
 };
 
 const updateMaze = (): void => {
@@ -60,11 +91,6 @@ const updateMaze = (): void => {
 const updateCarassonneMap = (): void => {
     map = createMap(controls.width, controls.height, tiles);
     ui.setCurrentCarcassonneMap(map);
-};
-
-const getSleepMs = (animationSpeed: number): number => {
-    const sleepMs = 691.1 - Math.log(animationSpeed + 1) * 100;
-    return sleepMs;
 };
 
 controls.on('startAnimation', async () => {
@@ -81,7 +107,9 @@ controls.on('resetAnimation', async () => {
 });
 
 controls.on('animationSpeed', (speed) => {
-    setSleepMs(getSleepMs(speed));
+    const sleepMs = getSleepMs(speed);
+    setMazeSleepMs(sleepMs);
+    setCollapseSleepMs(sleepMs);
 });
 
 controls.on('width', async () => {
@@ -188,7 +216,7 @@ Promise.all(fetchPromises).then(([tilemapDataObject, tilemapImage]) => {
     ui.setCurrentTilemap(tilemapImage, tilemapData);
 });
 
-setSleepMs(getSleepMs(controls.animationSpeed));
+setMazeSleepMs(getSleepMs(controls.animationSpeed));
 setPathPercentage(controls.mazePathPercentage);
 setRandomWallRemovePercentage(controls.randomWallRemovePercentage);
 ui.setWallThickness(controls.mazeWallThickness);

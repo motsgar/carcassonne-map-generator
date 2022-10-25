@@ -1,4 +1,4 @@
-import { Direction, shuffleArray } from './utils';
+import { Direction, shuffleArray, sleep } from './utils';
 
 export enum Side {
     Startpiece,
@@ -56,20 +56,38 @@ export type CarcassonneMap = {
     cells: MapCell[][];
 };
 
-export type CollapseEvent = {
-    type:
-        | 'leftCheckTrue'
-        | 'leftCheckFalse'
-        | 'rightCheckTrue'
-        | 'rightCheckFalse'
-        | 'topCheckTrue'
-        | 'topCheckFalse'
-        | 'bottomCheckTrue'
-        | 'bottomCheckFalse'
-        | 'collapse';
-    x: number;
-    y: number;
-};
+export type CollapseEvent =
+    | {
+          type: 'checkSide';
+          x: number;
+          y: number;
+          direction: Direction;
+          success: boolean;
+      }
+    | {
+          type: 'setCheckTile';
+          x: number;
+          y: number;
+          tile: Tile;
+      }
+    | {
+          type: 'successTile';
+          x: number;
+          y: number;
+          progress: number;
+          tile: Tile;
+      }
+    | {
+          type: 'initCheckTile';
+          x: number;
+          y: number;
+          tile: Tile;
+      }
+    | {
+          type: 'collapse';
+          x: number;
+          y: number;
+      };
 
 export type CollapseEventCallback = (event: CollapseEvent) => void;
 
@@ -168,33 +186,132 @@ const printMap = (map: CarcassonneMap): void => {
     console.log(outputString);
 };
 
+let sleepMs = 2;
+
+const setSleepMs = (ms: number): void => {
+    sleepMs = ms;
+};
+
 // checks a single coordinate for all possible tiles that fit the given sides
-const getPossibleTiles = (
+const getPossibleTiles = async (
     map: CarcassonneMap,
     x: number,
     y: number,
     tiles: Tile[],
     collapseEvent?: CollapseEventCallback
-): Tile[] => {
+): Promise<Tile[]> => {
     const filteredTiles = [];
 
-    for (const tile of tiles) {
-        if (x > 0 && !map.cells[y][x - 1].sides.right.has(tile.left)) {
-            collapseEvent && collapseEvent({ type: 'leftCheckFalse', x, y });
-            continue;
-        } else collapseEvent && collapseEvent({ type: 'leftCheckTrue', x, y });
-        if (x < map.width - 1 && !map.cells[y][x + 1].sides.left.has(tile.right)) {
-            collapseEvent && collapseEvent({ type: 'rightCheckFalse', x, y });
-            continue;
-        } else collapseEvent && collapseEvent({ type: 'rightCheckTrue', x, y });
-        if (y > 0 && !map.cells[y - 1][x].sides.bottom.has(tile.top)) {
-            collapseEvent && collapseEvent({ type: 'topCheckFalse', x, y });
-            continue;
-        } else collapseEvent && collapseEvent({ type: 'topCheckTrue', x, y });
-        if (y < map.height - 1 && !map.cells[y + 1][x].sides.top.has(tile.bottom)) {
-            collapseEvent && collapseEvent({ type: 'bottomCheckFalse', x, y });
-            continue;
-        } else collapseEvent && collapseEvent({ type: 'bottomCheckTrue', x, y });
+    collapseEvent?.({
+        type: 'initCheckTile',
+        x,
+        y,
+        tile: tiles[0],
+    });
+
+    for (let i = 0; i < tiles.length; i++) {
+        const tile = tiles[i];
+
+        collapseEvent?.({
+            type: 'setCheckTile',
+            x,
+            y,
+            tile,
+        });
+
+        if (sleepMs > 0) await sleep(sleepMs);
+
+        if (y > 0) {
+            if (!map.cells[y - 1][x].sides.bottom.has(tile.top)) {
+                collapseEvent?.({
+                    type: 'checkSide',
+                    x,
+                    y,
+                    direction: Direction.Up,
+                    success: false,
+                });
+                continue;
+            } else
+                collapseEvent?.({
+                    type: 'checkSide',
+                    x,
+                    y,
+                    direction: Direction.Up,
+                    success: true,
+                });
+            if (sleepMs > 0) await sleep(sleepMs);
+        }
+
+        if (x < map.width - 1) {
+            if (!map.cells[y][x + 1].sides.left.has(tile.right)) {
+                collapseEvent?.({
+                    type: 'checkSide',
+                    x,
+                    y,
+                    direction: Direction.Right,
+                    success: false,
+                });
+                continue;
+            } else
+                collapseEvent?.({
+                    type: 'checkSide',
+                    x,
+                    y,
+                    direction: Direction.Right,
+                    success: true,
+                });
+            if (sleepMs > 0) await sleep(sleepMs);
+        }
+
+        if (y < map.height - 1) {
+            if (!map.cells[y + 1][x].sides.top.has(tile.bottom)) {
+                collapseEvent?.({
+                    type: 'checkSide',
+                    x,
+                    y,
+                    direction: Direction.Down,
+                    success: false,
+                });
+                continue;
+            } else
+                collapseEvent?.({
+                    type: 'checkSide',
+                    x,
+                    y,
+                    direction: Direction.Down,
+                    success: true,
+                });
+            if (sleepMs > 0) await sleep(sleepMs);
+        }
+
+        if (x > 0) {
+            if (!map.cells[y][x - 1].sides.right.has(tile.left)) {
+                collapseEvent?.({
+                    type: 'checkSide',
+                    x,
+                    y,
+                    direction: Direction.Left,
+                    success: false,
+                });
+                continue;
+            } else
+                collapseEvent?.({
+                    type: 'checkSide',
+                    x,
+                    y,
+                    direction: Direction.Left,
+                    success: true,
+                });
+            if (sleepMs > 0) await sleep(sleepMs);
+        }
+
+        collapseEvent?.({
+            type: 'successTile',
+            x,
+            y,
+            progress: i / tiles.length,
+            tile,
+        });
 
         filteredTiles.push(tile);
     }
@@ -202,13 +319,13 @@ const getPossibleTiles = (
 };
 
 // function to be called recursively to calculate the possible tiles for a given coordinate
-const propagateThroughTiles = (
+const propagateThroughTiles = async (
     map: CarcassonneMap,
     x: number,
     y: number,
     oldCellStates: OldCellStates,
     collapseEvent?: CollapseEventCallback
-): boolean => {
+): Promise<boolean> => {
     const cell = map.cells[y][x];
     const dependencies = cell.dependencies;
     const originalPossibilities = cell.possibleTiles.length;
@@ -219,12 +336,12 @@ const propagateThroughTiles = (
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         oldCellStates.get(y)!.set(x, { possibleTiles: cell.possibleTiles.slice(), collapsed: cell.collapsed });
 
-    cell.possibleTiles = getPossibleTiles(map, x, y, cell.possibleTiles, collapseEvent);
+    cell.possibleTiles = await getPossibleTiles(map, x, y, cell.possibleTiles, collapseEvent);
     if (cell.possibleTiles.length === 1) {
-        collapseEvent && collapseEvent({ type: 'collapse', x, y });
+        collapseEvent?.({ type: 'collapse', x, y });
         cell.collapsed = true;
     } else if (cell.possibleTiles.length === 0) {
-        collapseEvent && collapseEvent({ type: 'collapse', x, y });
+        collapseEvent?.({ type: 'collapse', x, y });
         return false;
     }
     cell.sides = {
@@ -243,20 +360,20 @@ const propagateThroughTiles = (
         if (map.cells[dependency.y][dependency.x].collapsed) continue;
         if (!map.cells[dependency.y][dependency.x].dependencies.reduce((val, cur) => val || cur.hasChanged, false))
             continue;
-        const noTilesLeft = propagateThroughTiles(map, dependency.x, dependency.y, oldCellStates, collapseEvent);
+        const noTilesLeft = await propagateThroughTiles(map, dependency.x, dependency.y, oldCellStates, collapseEvent);
         if (!noTilesLeft) return false;
     }
     return true;
 };
 
 // this function doesn't check if the limitation leaves a tile without possibilities
-const limitTilePossibilities = (
+const limitTilePossibilities = async (
     map: CarcassonneMap,
     x: number,
     y: number,
     tileList: Tile[],
     collapseEvent?: CollapseEventCallback
-): LimitationResult => {
+): Promise<LimitationResult> => {
     const oldCellStates: OldCellStates = new Map<number, Map<number, CellState>>();
     oldCellStates.set(y, new Map<number, CellState>());
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -282,7 +399,7 @@ const limitTilePossibilities = (
 
     for (const dependency of map.cells[y][x].dependencies) dependency.reverse.hasChanged = true;
 
-    const propagationSuccess = propagateThroughTiles(map, x, y, oldCellStates, collapseEvent);
+    const propagationSuccess = await propagateThroughTiles(map, x, y, oldCellStates, collapseEvent);
 
     return {
         success: propagationSuccess,
@@ -291,13 +408,13 @@ const limitTilePossibilities = (
 };
 
 // collapse a single coordinate to a specific tile
-const collapse = (
+const collapse = async (
     map: CarcassonneMap,
     x: number,
     y: number,
     tile: Tile,
     collapseEvent?: CollapseEventCallback
-): LimitationResult => {
+): Promise<LimitationResult> => {
     return limitTilePossibilities(map, x, y, [tile], collapseEvent);
 };
 
@@ -316,7 +433,7 @@ const resetOldCellStates = (map: CarcassonneMap, oldCellStates: OldCellStates): 
     }
 };
 
-const fullCollapse = (map: CarcassonneMap, collapseEvent?: CollapseEventCallback): void => {
+const fullCollapse = async (map: CarcassonneMap, collapseEvent?: CollapseEventCallback): Promise<void> => {
     let nonCollapsedTiles = map.cells.flat();
     const oldCellStates: OldCellStates[] = [];
 
@@ -340,7 +457,7 @@ const fullCollapse = (map: CarcassonneMap, collapseEvent?: CollapseEventCallback
         shuffleArray(tileToCollapse.possibleTiles);
 
         while (tileIndex < tileToCollapse.possibleTiles.length) {
-            const collapseResult = collapse(
+            const collapseResult = await collapse(
                 map,
                 tileToCollapse.x,
                 tileToCollapse.y,
@@ -368,4 +485,4 @@ const fullCollapse = (map: CarcassonneMap, collapseEvent?: CollapseEventCallback
     }
 };
 
-export { collapse, limitTilePossibilities, fullCollapse, printMap, createMap, resetOldCellStates };
+export { collapse, limitTilePossibilities, fullCollapse, printMap, createMap, resetOldCellStates, setSleepMs };

@@ -156,7 +156,7 @@ const createAllPossibleTiles = (): Tile[] => {
     return tiles;
 };
 
-const limitMapToMaze = (map: CarcassonneMap, maze: Maze, options: MazeLimitOptions): void => {
+const limitMapToMaze = async (map: CarcassonneMap, maze: Maze, options: MazeLimitOptions): Promise<void> => {
     if (!options.allowTilesOutsideWithSide) options.allowSideConnections = false;
 
     for (let y = 0; y < map.height; y++) {
@@ -168,7 +168,7 @@ const limitMapToMaze = (map: CarcassonneMap, maze: Maze, options: MazeLimitOptio
 
             if (!mazeCell.isMaze) {
                 if (!options.allowTilesOutsideWithSide) {
-                    const limitationResult = limitTilePossibilities(
+                    const limitationResult = await limitTilePossibilities(
                         map,
                         x,
                         y,
@@ -188,7 +188,7 @@ const limitMapToMaze = (map: CarcassonneMap, maze: Maze, options: MazeLimitOptio
                 continue;
             }
 
-            const limitationResult = limitTilePossibilities(
+            const limitationResult = await limitTilePossibilities(
                 map,
                 x,
                 y,
