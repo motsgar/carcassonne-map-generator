@@ -363,6 +363,7 @@ const fullCollapse = (map: CarcassonneMap, collapseEvent?: CollapseEventCallback
             if (latestOldCellStates === undefined)
                 throw new Error('Impossible to collapse the map, no tiles left to collapse');
             resetOldCellStates(map, latestOldCellStates);
+            nonCollapsedTiles = map.cells.flat();
         }
     }
 };
