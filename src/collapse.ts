@@ -191,7 +191,7 @@ let shouldProcessMap = true;
 let mapProcessingStartTime = 0;
 let mapProcessingSleepsHappened = 0;
 
-let sleepMs = 2;
+let sleepMs = 0;
 
 const setSleepMs = (ms: number): void => {
     const timeShouldTaken = sleepMs * mapProcessingSleepsHappened;

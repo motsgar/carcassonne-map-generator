@@ -56,7 +56,7 @@ class ControlEvent extends EventEmitter {
     constructor() {
         super();
 
-        this.animationSpeed = 800;
+        this.animationSpeed = 500;
         this.width = 8;
         this.height = 7;
         this.wallThickness = 2;
@@ -262,7 +262,6 @@ export const resetFullAnimation = (): void => {
     startWFCAnimationController.enable();
     resetWFCAnimationController.disable();
     stopAnimationController.disable();
-    resetAnimationController.disable();
 
     widthController.enable();
     heightController.enable();
@@ -309,6 +308,10 @@ export const disableMapReset = (): void => {
 export const disableResize = (): void => {
     widthController.disable();
     heightController.disable();
+};
+
+export const disableMainStartAnimation = (): void => {
+    startAnimationController.disable();
 };
 
 export default controls;

@@ -51,10 +51,11 @@ let mapGenerationStarted = false;
 
 // Functions
 
-// Todo fix this
+const collapseSleepDevider = 30;
 const getSleepMs = (animationSpeed: number): number => {
-    const sleepMs = 691.001 - Math.log(animationSpeed + 1) * 100;
-    return sleepMs;
+    const normalizedSpeed = animationSpeed / 1000;
+    const steepness = 0.001;
+    return (1 - (Math.pow(steepness, normalizedSpeed) - 1) / (steepness - 1)) * 1000;
 };
 
 // Callback handlers
@@ -151,7 +152,7 @@ const limitMap = async (): Promise<void> => {
     mapLimited = true;
     mazeLimitingStarted = false;
 
-    setCollapseSleepMs(getSleepMs(controls.animationSpeed));
+    setCollapseSleepMs(getSleepMs(controls.animationSpeed) / collapseSleepDevider);
 };
 
 const startWFCAnimation = async (): Promise<void> => {
@@ -163,7 +164,7 @@ const startWFCAnimation = async (): Promise<void> => {
     if (mapDone) return;
     mapGenerationStarted = true;
 
-    setCollapseSleepMs(getSleepMs(controls.animationSpeed));
+    setCollapseSleepMs(getSleepMs(controls.animationSpeed) / collapseSleepDevider);
 
     collapsingMapRunning = true;
     await fullCollapse(map, collapsingCallback);
@@ -181,7 +182,7 @@ const startFullAnimation = async (): Promise<void> => {
     if (!mapLimited) await limitMap();
     if (!fullAnimationRunning) return;
 
-    setCollapseSleepMs(getSleepMs(controls.animationSpeed));
+    setCollapseSleepMs(getSleepMs(controls.animationSpeed) / collapseSleepDevider);
     if (!mapDone) await startWFCAnimation();
 };
 
@@ -230,6 +231,8 @@ controls.on('stopFullAnimation', async () => {
     if (mapLimited || mapDone || mapGenerationStarted || !(mazeGenerationStarted || mazeDone)) controlset.limitMap();
     if (mapDone) controlset.finishWFCAnimation();
     if (mazeGenerationStarted || mapGenerationStarted || mazeDone || mapDone || mapLimited) controlset.disableResize();
+    if (mapDone || (mapGenerationStarted && (mazeDone || mazeGenerationStarted)))
+        controlset.disableMainStartAnimation();
 });
 
 controls.on('resetFullAnimation', async () => {
@@ -252,7 +255,7 @@ controls.on('showMap', () => {
 controls.on('animationSpeed', (speed) => {
     const sleepMs = getSleepMs(speed);
     setMazeSleepMs(sleepMs);
-    setCollapseSleepMs(sleepMs);
+    setCollapseSleepMs(sleepMs / collapseSleepDevider);
 });
 
 controls.on('width', async () => {
@@ -278,6 +281,8 @@ controls.on('startMazeAnimation', async () => {
     if (mapLimited || mapDone || mapGenerationStarted || !(mazeGenerationStarted || mazeDone)) controlset.limitMap();
     if (mapDone) controlset.finishWFCAnimation();
     if (mazeGenerationStarted || mapGenerationStarted || mazeDone || mapDone || mapLimited) controlset.disableResize();
+    if (mapDone || (mapGenerationStarted && (mazeDone || mazeGenerationStarted)))
+        controlset.disableMainStartAnimation();
 });
 
 controls.on('resetMazeAnimation', async () => {
@@ -288,6 +293,9 @@ controls.on('resetMazeAnimation', async () => {
     controlset.resetMazeAnimation();
     if (!mapGenerationStarted && !mapDone) controlset.disableMapReset();
     if (mazeGenerationStarted || mapGenerationStarted || mazeDone || mapDone || mapLimited) controlset.disableResize();
+    else controlset.resetFullAnimation();
+    if (mapDone || (mapGenerationStarted && (mazeDone || mazeGenerationStarted)))
+        controlset.disableMainStartAnimation();
 });
 
 controls.on('mazePathPercentage', (percentage) => {
@@ -306,6 +314,9 @@ controls.on('startWFCAnimation', async () => {
     if (mapDone) controlset.finishWFCAnimation();
     if (mapLimited || mapDone || mapGenerationStarted || !(mazeGenerationStarted || mazeDone)) controlset.limitMap();
     if (mazeGenerationStarted || mapGenerationStarted || mazeDone || mapDone || mapLimited) controlset.disableResize();
+    if (mapDone || (mapGenerationStarted && (mazeDone || mazeGenerationStarted)))
+        controlset.disableMainStartAnimation();
+    if (!mazeDone && !mazeGenerationStarted) controlset.resetMazeAnimation();
 });
 
 controls.on('resetWFCAnimation', async () => {
@@ -314,6 +325,8 @@ controls.on('resetWFCAnimation', async () => {
     if (mapLimited || mapDone || mapGenerationStarted || !(mazeGenerationStarted || mazeDone)) controlset.limitMap();
     if (mazeGenerationStarted || mapGenerationStarted || mazeDone || mapDone || mapLimited) controlset.disableResize();
     else controlset.resetFullAnimation();
+    if (mapDone || (mapGenerationStarted && (mazeDone || mazeGenerationStarted)))
+        controlset.disableMainStartAnimation();
 });
 
 controls.on('limitCurrentMap', async () => {
@@ -405,6 +418,7 @@ Promise.all(fetchPromises).then(([tilemapDataObject, tilemapImage]) => {
 });
 
 setMazeSleepMs(getSleepMs(controls.animationSpeed));
+setCollapseSleepMs(getSleepMs(controls.animationSpeed) / collapseSleepDevider);
 setPathPercentage(controls.mazePathPercentage);
 setRandomWallRemovePercentage(controls.randomWallRemovePercentage);
 ui.setWallThickness(controls.wallThickness);

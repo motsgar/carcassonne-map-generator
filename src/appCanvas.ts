@@ -192,6 +192,10 @@ const updateCheckingCellProgress = (progress: number): void => {
     if (currentCheckingCell === undefined) return;
 
     currentCheckingCell.progress = progress;
+
+    if (progress === 1) {
+        currentCheckingCell = undefined;
+    }
 };
 
 const getPosOnCanvas = (pos: { x: number; y: number }): { x: number; y: number } => {
@@ -563,7 +567,7 @@ const draw = (): void => {
                     appCtx.textAlign = 'center';
                     appCtx.textBaseline = 'middle';
                     appCtx.fillStyle = '#000000';
-                    appCtx.font = 'bold 20px Arial';
+                    appCtx.font = 'bold ' + zoomLevel / 8 + 'px Arial';
                     appCtx.fillText(
                         cell.possibleTiles.length.toString(),
                         pos.x + posOffset.x / 2,
