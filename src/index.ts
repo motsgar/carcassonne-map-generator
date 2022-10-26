@@ -224,8 +224,9 @@ controls.on('stopFullAnimation', async () => {
     if (mapLimited || mapDone || mapGenerationStarted || !(mazeGenerationStarted || mazeDone)) controlset.limitMap();
     if (mapDone) controlset.finishWFCAnimation();
     if (mazeGenerationStarted || mapGenerationStarted || mazeDone || mapDone || mapLimited) controlset.disableResize();
-    if (mapDone || (mapGenerationStarted && (mazeDone || mazeGenerationStarted)))
+    if (mapDone || (mapGenerationStarted && (!mazeDone || !mazeGenerationStarted)))
         controlset.disableMainStartAnimation();
+    else controlset.enableMainStartAnimation();
 });
 
 controls.on('resetFullAnimation', async () => {
@@ -273,8 +274,9 @@ controls.on('startMazeAnimation', async () => {
     if (mapLimited || mapDone || mapGenerationStarted || !(mazeGenerationStarted || mazeDone)) controlset.limitMap();
     if (mapDone) controlset.finishWFCAnimation();
     if (mazeGenerationStarted || mapGenerationStarted || mazeDone || mapDone || mapLimited) controlset.disableResize();
-    if (mapDone || (mapGenerationStarted && (mazeDone || mazeGenerationStarted)))
+    if (mapDone || (mapGenerationStarted && (!mazeDone || !mazeGenerationStarted)))
         controlset.disableMainStartAnimation();
+    else controlset.enableMainStartAnimation();
 });
 
 controls.on('resetMazeAnimation', async () => {
@@ -286,8 +288,9 @@ controls.on('resetMazeAnimation', async () => {
     if (!mapGenerationStarted && !mapDone) controlset.disableMapReset();
     if (mazeGenerationStarted || mapGenerationStarted || mazeDone || mapDone || mapLimited) controlset.disableResize();
     else controlset.resetFullAnimation();
-    if (mapDone || (mapGenerationStarted && (mazeDone || mazeGenerationStarted)))
+    if (mapDone || (mapGenerationStarted && (!mazeDone || !mazeGenerationStarted)))
         controlset.disableMainStartAnimation();
+    else controlset.enableMainStartAnimation();
 });
 
 controls.on('mazePathPercentage', (percentage) => {
@@ -306,8 +309,9 @@ controls.on('startWFCAnimation', async () => {
     if (mapDone) controlset.finishWFCAnimation();
     if (mapLimited || mapDone || mapGenerationStarted || !(mazeGenerationStarted || mazeDone)) controlset.limitMap();
     if (mazeGenerationStarted || mapGenerationStarted || mazeDone || mapDone || mapLimited) controlset.disableResize();
-    if (mapDone || (mapGenerationStarted && (mazeDone || mazeGenerationStarted)))
+    if (mapDone || (mapGenerationStarted && (!mazeDone || !mazeGenerationStarted)))
         controlset.disableMainStartAnimation();
+    else controlset.enableMainStartAnimation();
     if (!mazeDone && !mazeGenerationStarted) controlset.resetMazeAnimation();
 });
 
@@ -317,8 +321,9 @@ controls.on('resetWFCAnimation', async () => {
     if (mapLimited || mapDone || mapGenerationStarted || !(mazeGenerationStarted || mazeDone)) controlset.limitMap();
     if (mazeGenerationStarted || mapGenerationStarted || mazeDone || mapDone || mapLimited) controlset.disableResize();
     else controlset.resetFullAnimation();
-    if (mapDone || (mapGenerationStarted && (mazeDone || mazeGenerationStarted)))
+    if (mapDone || (mapGenerationStarted && (!mazeDone || !mazeGenerationStarted)))
         controlset.disableMainStartAnimation();
+    else controlset.enableMainStartAnimation();
 });
 
 controls.on('limitCurrentMap', async () => {

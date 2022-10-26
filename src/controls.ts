@@ -314,4 +314,8 @@ export const disableMainStartAnimation = (): void => {
     startAnimationController.disable();
 };
 
+export const enableMainStartAnimation = (): void => {
+    startAnimationController.enable();
+};
+
 export default controls;
