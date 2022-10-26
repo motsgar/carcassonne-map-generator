@@ -164,61 +164,70 @@ const limitMapToMaze = async (
 ): Promise<void> => {
     if (!options.allowTilesOutsideWithSide) options.allowSideConnections = false;
 
-    for (let y = 0; y < map.height; y++) {
-        for (let x = 0; x < map.width; x++) {
-            const mapCell = map.cells[y][x];
-            const mazeCell = maze.tiles[y][x];
+    try {
+        for (let y = 0; y < map.height; y++) {
+            for (let x = 0; x < map.width; x++) {
+                const mapCell = map.cells[y][x];
+                const mazeCell = maze.tiles[y][x];
 
-            if (mazeCell === undefined) continue;
+                if (mazeCell === undefined) continue;
 
-            if (!mazeCell.isMaze) {
-                if (!options.allowTilesOutsideWithSide) {
-                    const limitationResult = await limitTilePossibilities(
-                        map,
-                        x,
-                        y,
-                        mapCell.possibleTiles.filter(
-                            (tile) =>
-                                tile.bottom !== options.sideType &&
-                                tile.top !== options.sideType &&
-                                tile.left !== options.sideType &&
-                                tile.right !== options.sideType
-                        ),
-                        collapseEvent
-                    );
+                if (!mazeCell.isMaze) {
+                    if (!options.allowTilesOutsideWithSide) {
+                        const limitationResult = await limitTilePossibilities(
+                            map,
+                            x,
+                            y,
+                            mapCell.possibleTiles.filter(
+                                (tile) =>
+                                    tile.bottom !== options.sideType &&
+                                    tile.top !== options.sideType &&
+                                    tile.left !== options.sideType &&
+                                    tile.right !== options.sideType
+                            ),
+                            collapseEvent
+                        );
 
-                    if (!limitationResult.success) {
-                        throw new Error(`Could not limit tilemap to maze. No possible tiles left at (${x}, ${y})`);
+                        if (!limitationResult.success) {
+                            throw new Error(`Could not limit tilemap to maze. No possible tiles left at (${x}, ${y})`);
+                        }
                     }
+                    continue;
                 }
-                continue;
-            }
 
-            const limitationResult = await limitTilePossibilities(
-                map,
-                x,
-                y,
-                mapCell.possibleTiles.filter((tile) => {
-                    if (mazeCell.walls.top.open) {
-                        if (tile.top !== options.sideType) return false;
-                    } else if (!options.allowSideConnections && tile.top === options.sideType) return false;
-                    if (mazeCell.walls.right.open) {
-                        if (tile.right !== options.sideType) return false;
-                    } else if (!options.allowSideConnections && tile.right === options.sideType) return false;
-                    if (mazeCell.walls.bottom.open) {
-                        if (tile.bottom !== options.sideType) return false;
-                    } else if (!options.allowSideConnections && tile.bottom === options.sideType) return false;
-                    if (mazeCell.walls.left.open) {
-                        if (tile.left !== options.sideType) return false;
-                    } else if (!options.allowSideConnections && tile.left === options.sideType) return false;
-                    return true;
-                }),
-                collapseEvent
-            );
-            if (!limitationResult.success) {
-                throw new Error(`Could not limit tilemap to maze. No possible tiles left at (${x}, ${y})`);
+                const limitationResult = await limitTilePossibilities(
+                    map,
+                    x,
+                    y,
+                    mapCell.possibleTiles.filter((tile) => {
+                        if (mazeCell.walls.top.open) {
+                            if (tile.top !== options.sideType) return false;
+                        } else if (!options.allowSideConnections && tile.top === options.sideType) return false;
+                        if (mazeCell.walls.right.open) {
+                            if (tile.right !== options.sideType) return false;
+                        } else if (!options.allowSideConnections && tile.right === options.sideType) return false;
+                        if (mazeCell.walls.bottom.open) {
+                            if (tile.bottom !== options.sideType) return false;
+                        } else if (!options.allowSideConnections && tile.bottom === options.sideType) return false;
+                        if (mazeCell.walls.left.open) {
+                            if (tile.left !== options.sideType) return false;
+                        } else if (!options.allowSideConnections && tile.left === options.sideType) return false;
+                        return true;
+                    }),
+                    collapseEvent
+                );
+                if (!limitationResult.success) {
+                    throw new Error(`Could not limit tilemap to maze. No possible tiles left at (${x}, ${y})`);
+                }
             }
         }
+    } catch (e) {
+        if (e instanceof Error) {
+            if (e.message === 'Map processing was canceled') {
+                return;
+            }
+        }
+        throw e;
     }
 };
 

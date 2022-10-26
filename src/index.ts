@@ -181,7 +181,6 @@ const startFullAnimation = async (): Promise<void> => {
 };
 
 const stopFullAnimation = async (): Promise<void> => {
-    mazeLimitingRunning = false;
     fullAnimationRunning = false;
 
     if (mazeGenerationRunning) {
@@ -189,8 +188,11 @@ const stopFullAnimation = async (): Promise<void> => {
         await cancelProcessingMaze();
     }
     // if (mazeLimitingRunning) await cancelLimitingMap();
-    if (collapsingMapRunning) {
+    if (collapsingMapRunning || mazeLimitingRunning) {
+        console.log('canceling');
         collapsingMapRunning = false;
+        mazeLimitingRunning = false;
+
         await cancelProcessingMap();
     }
 };
@@ -220,7 +222,7 @@ controls.on('startFullAnimation', async () => {
 controls.on('stopFullAnimation', async () => {
     await stopFullAnimation();
     controlset.stopAnimation();
-    if (!mapGenerationStarted) controlset.disableMapReset();
+    if (!mapGenerationStarted && !mazeLimitingStarted) controlset.disableMapReset();
     if (mazeDone) controlset.finishMazeAnimation();
     if (mapLimited || mapDone || mapGenerationStarted || !(mazeGenerationStarted || mazeDone)) controlset.limitMap();
     if (mapDone) controlset.finishWFCAnimation();
