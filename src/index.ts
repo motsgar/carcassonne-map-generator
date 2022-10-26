@@ -54,8 +54,6 @@ const collapsingCallback = (event: CollapseEvent): void => {
             break;
         case 'setCheckTile':
             ui.updateCheckingCellTile(event.tile);
-            break;
-        case 'successTile':
             ui.updateCheckingCellProgress(event.tile, event.progress);
             break;
         case 'checkSide':
@@ -219,4 +217,4 @@ Promise.all(fetchPromises).then(([tilemapDataObject, tilemapImage]) => {
 setMazeSleepMs(getSleepMs(controls.animationSpeed));
 setPathPercentage(controls.mazePathPercentage);
 setRandomWallRemovePercentage(controls.randomWallRemovePercentage);
-ui.setWallThickness(controls.mazeWallThickness);
+ui.setWallThickness(controls.wallThickness);

@@ -32,7 +32,7 @@ class ControlEvent extends EventEmitter {
     animationSpeed: number;
     width: number;
     height: number;
-    mazeWallThickness: number;
+    wallThickness: number;
 
     mazePathPercentage: number;
     randomWallRemovePercentage: number;
@@ -43,7 +43,7 @@ class ControlEvent extends EventEmitter {
         this.animationSpeed = 800;
         this.width = 20;
         this.height = 18;
-        this.mazeWallThickness = 2;
+        this.wallThickness = 2;
 
         this.mazePathPercentage = 0.5;
         this.randomWallRemovePercentage = 0.4;
@@ -56,58 +56,87 @@ const gui = new GUI({
     width: 300,
 });
 const guiInfo = {
-    'Start animation': () => {
+    startFullAnimation: () => {
         controls.emit('startAnimation');
     },
-    'Reset animation': () => {
+
+    resetFullAnimation: () => {
         controls.emit('resetAnimation');
     },
-    'Animation speed': controls.animationSpeed,
-    Width: controls.width,
-    Height: controls.height,
-    'Maze wall thickness': controls.mazeWallThickness,
-    'Tilemap JSON upload': () => {
+    animationSpeed: controls.animationSpeed,
+    width: controls.width,
+    height: controls.height,
+    wallThickness: controls.wallThickness,
+    startMazeAnimation: () => {
+        controls.emit('startAnimation');
+    },
+    mazePathPercentage: controls.mazePathPercentage,
+    mazeWallRemovalPercentage: controls.randomWallRemovePercentage,
+    tilemapJsonUpload: () => {
         tilemapJsonInputElement.click();
     },
-    'Tilemap image upload': () => {
+    tilemapImageUpload: () => {
         tilemapImageInputElement.click();
     },
-    'Maze path percentage': controls.mazePathPercentage,
-    'Wall removal percentage': controls.randomWallRemovePercentage,
 };
 
-const startAnimationController = gui.add(guiInfo, 'Start animation');
-gui.add(guiInfo, 'Reset animation');
-gui.add(guiInfo, 'Animation speed', 1, 1000, 2).onChange((value: number) => {
-    controls.animationSpeed = value;
-    controls.emit('animationSpeed', value);
-});
-gui.add(guiInfo, 'Width')
+// General
+const startAnimationController = gui.add(guiInfo, 'startFullAnimation').name('Start animation');
+gui.add(guiInfo, 'resetFullAnimation').name('Reset animation');
+gui.add(guiInfo, 'animationSpeed', 1, 1000, 2)
+    .name('Animation speed')
+    .onChange((value: number) => {
+        controls.animationSpeed = value;
+        controls.emit('animationSpeed', value);
+    });
+gui.add(guiInfo, 'width')
+    .name('Width')
     .min(1)
     .onFinishChange((value: number) => {
         controls.width = value;
         controls.emit('width', value);
     });
-gui.add(guiInfo, 'Height')
+gui.add(guiInfo, 'height')
+    .name('Height')
     .min(1)
     .onFinishChange((value: number) => {
         controls.height = value;
         controls.emit('height', value);
     });
-gui.add(guiInfo, 'Maze wall thickness', 0, 20, 1).onChange((value: number) => {
-    controls.mazeWallThickness = value;
-    controls.emit('mazeWallThickness', value);
-});
-const tilemapJsonUploadController = gui.add(guiInfo, 'Tilemap JSON upload').name('Tilemap JSON upload (default)');
-const tilemapImageUploadController = gui.add(guiInfo, 'Tilemap image upload').name('Tilemap image upload (default)');
-gui.add(guiInfo, 'Maze path percentage', 0, 1, 0.01).onChange((value: number) => {
-    controls.mazePathPercentage = value;
-    controls.emit('mazePathPercentage', value);
-});
-gui.add(guiInfo, 'Wall removal percentage', 0, 1, 0.01).onChange((value: number) => {
-    controls.randomWallRemovePercentage = value;
-    controls.emit('randomWallRemovePercentage', value);
-});
+gui.add(guiInfo, 'wallThickness', 0, 20, 1)
+    .name('Wall thickness')
+    .onChange((value: number) => {
+        controls.wallThickness = value;
+        controls.emit('mazeWallThickness', value);
+    });
+
+// Maze
+const mazeFolder = gui.addFolder('Maze generation');
+mazeFolder.add(guiInfo, 'startMazeAnimation').name('Start animation');
+
+mazeFolder
+    .add(guiInfo, 'mazePathPercentage', 0, 1, 0.01)
+    .name('Path percentage')
+    .onChange((value: number) => {
+        controls.mazePathPercentage = value;
+        controls.emit('mazePathPercentage', value);
+    });
+mazeFolder
+    .add(guiInfo, 'mazeWallRemovalPercentage', 0, 1, 0.01)
+    .name('Wall removal percentage')
+    .onChange((value: number) => {
+        controls.randomWallRemovePercentage = value;
+        controls.emit('randomWallRemovePercentage', value);
+    });
+
+// Wave function collapse
+const waveFunctionCollapseFolder = gui.addFolder('Wave function collapse');
+const tilemapJsonUploadController = waveFunctionCollapseFolder
+    .add(guiInfo, 'tilemapJsonUpload')
+    .name('Tilemap JSON upload (default)');
+const tilemapImageUploadController = waveFunctionCollapseFolder
+    .add(guiInfo, 'tilemapImageUpload')
+    .name('Tilemap image upload (default)');
 
 tilemapJsonInputElement.addEventListener('change', () => {
     const file = tilemapJsonInputElement.files?.[0];
@@ -142,6 +171,8 @@ tilemapImageInputElement.addEventListener('change', () => {
         controls.emit('tilemapImageUpload', undefined);
     }
 });
+
+// Functions
 
 export const disableStartAnimation = (): void => {
     startAnimationController.disable();

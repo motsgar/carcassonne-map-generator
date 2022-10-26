@@ -66,13 +66,7 @@ export type CollapseEvent =
           x: number;
           y: number;
           tile: Tile;
-      }
-    | {
-          type: 'successTile';
-          x: number;
-          y: number;
           progress: number;
-          tile: Tile;
       }
     | {
           type: 'initCheckTile';
@@ -209,22 +203,24 @@ const getPossibleTiles = async (
         [Direction.Down]: [],
         [Direction.Left]: [],
     };
+    let tile = tiles[0];
 
     collapseEvent?.({
         type: 'initCheckTile',
         x,
         y,
-        tile: tiles[0],
+        tile: tile,
     });
 
     for (let i = 0; i < tiles.length; i++) {
-        const tile = tiles[i];
+        tile = tiles[i];
 
         collapseEvent?.({
             type: 'setCheckTile',
             x,
             y,
             tile,
+            progress: i / tiles.length,
         });
 
         if (y > 0) {
@@ -325,16 +321,16 @@ const getPossibleTiles = async (
 
         if (sleepMs > 0) await sleep(sleepMs);
 
-        collapseEvent?.({
-            type: 'successTile',
-            x,
-            y,
-            progress: i / tiles.length,
-            tile,
-        });
-
         filteredTiles.push(tile);
     }
+
+    collapseEvent?.({
+        type: 'setCheckTile',
+        x,
+        y,
+        tile,
+        progress: 1,
+    });
 
     return { tiles: filteredTiles, sides };
 };
@@ -372,17 +368,6 @@ const limitTilePossibilities = async (
         };
     }
 
-    const upChanged =
-        y > 0 && map.cells[y - 1][x].sides[Direction.Down].length !== possibleTiles.sides[Direction.Up].length;
-    const rightChanged =
-        x < map.width - 1 &&
-        map.cells[y][x + 1].sides[Direction.Left].length !== possibleTiles.sides[Direction.Right].length;
-    const downChanged =
-        y < map.height - 1 &&
-        map.cells[y + 1][x].sides[Direction.Up].length !== possibleTiles.sides[Direction.Down].length;
-    const leftChanged =
-        x > 0 && map.cells[y][x - 1].sides[Direction.Right].length !== possibleTiles.sides[Direction.Left].length;
-
     // check if the tile can be collapsed to the given tile
     map.cells[y][x].possibleTiles = possibleTiles.tiles;
 
@@ -399,19 +384,35 @@ const limitTilePossibilities = async (
         map.cells[y][x].sides[Direction.Left] = [map.cells[y][x].possibleTiles[0].left];
     }
 
-    if (upChanged && y > 0 && !map.cells[y - 1][x].collapsed) {
+    if (
+        y > 0 &&
+        map.cells[y - 1][x].sides[Direction.Down].length !== possibleTiles.sides[Direction.Up].length &&
+        !map.cells[y - 1][x].collapsed
+    ) {
         const noTilesLeft = await limitTilePossibilities(map, x, y - 1, undefined, collapseEvent, oldCellStates);
         if (!noTilesLeft.success) return noTilesLeft;
     }
-    if (rightChanged && x < map.width - 1 && !map.cells[y][x + 1].collapsed) {
+    if (
+        x < map.width - 1 &&
+        map.cells[y][x + 1].sides[Direction.Left].length !== possibleTiles.sides[Direction.Right].length &&
+        !map.cells[y][x + 1].collapsed
+    ) {
         const noTilesLeft = await limitTilePossibilities(map, x + 1, y, undefined, collapseEvent, oldCellStates);
         if (!noTilesLeft.success) return noTilesLeft;
     }
-    if (downChanged && y < map.height - 1 && !map.cells[y + 1][x].collapsed) {
+    if (
+        y < map.height - 1 &&
+        map.cells[y + 1][x].sides[Direction.Up].length !== possibleTiles.sides[Direction.Down].length &&
+        !map.cells[y + 1][x].collapsed
+    ) {
         const noTilesLeft = await limitTilePossibilities(map, x, y + 1, undefined, collapseEvent, oldCellStates);
         if (!noTilesLeft.success) return noTilesLeft;
     }
-    if (leftChanged && x > 0 && !map.cells[y][x - 1].collapsed) {
+    if (
+        x > 0 &&
+        map.cells[y][x - 1].sides[Direction.Right].length !== possibleTiles.sides[Direction.Left].length &&
+        !map.cells[y][x - 1].collapsed
+    ) {
         const noTilesLeft = await limitTilePossibilities(map, x - 1, y, undefined, collapseEvent, oldCellStates);
         if (!noTilesLeft.success) return noTilesLeft;
     }
@@ -492,7 +493,6 @@ const fullCollapse = async (map: CarcassonneMap, collapseEvent?: CollapseEventCa
 
                 break;
             }
-            // console.log('resetting');
 
             resetOldCellStates(map, collapseResult.oldCellStates);
             tileIndex++;
@@ -502,7 +502,6 @@ const fullCollapse = async (map: CarcassonneMap, collapseEvent?: CollapseEventCa
             const latestOldCellStates = oldCellStates.pop();
             if (latestOldCellStates === undefined)
                 throw new Error('Impossible to collapse the map, no tiles left to collapse');
-            // console.log('backtracking');
             resetOldCellStates(map, latestOldCellStates);
             nonCollapsedTiles = map.cells.flat();
         }

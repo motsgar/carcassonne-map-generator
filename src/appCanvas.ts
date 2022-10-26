@@ -1,4 +1,5 @@
 import { CarcassonneMap, MapCell, Side, Tile } from './collapse';
+import controls from './controls';
 import { Maze, MazeCell, Wall } from './maze';
 import { Direction, TilemapData } from './utils';
 
@@ -30,16 +31,29 @@ let cameraPosY = 8;
 
 let lastDrawTime = Date.now();
 
+const shouldDrawMaze = true;
+const shouldDrawMap = true;
+
 const mazeHighlights: Highlight[] = [];
-const mapHighlights: {
-    type: 'cell';
-    x: number;
-    y: number;
-    color: string;
-    currentDecay: number;
-    maxDecay: number;
-    direction: Direction;
-}[] = [];
+const mapHighlights: (
+    | {
+          type: 'edge';
+          x: number;
+          y: number;
+          color: string;
+          currentDecay: number;
+          maxDecay: number;
+          direction: Direction;
+      }
+    | {
+          type: 'checkTile';
+          x: number;
+          y: number;
+          color: string;
+          currentDecay: number;
+          maxDecay: number;
+      }
+)[] = [];
 
 let currentMaze: Maze | undefined = undefined;
 let currentPath: MazeCell[] = [];
@@ -98,7 +112,7 @@ const highlightMapCellCheck = (x: number, y: number, direction: Direction, color
     if (currentCheckingCell === undefined) return;
 
     mapHighlights.push({
-        type: 'cell',
+        type: 'edge',
         x,
         y,
         color,
@@ -127,6 +141,16 @@ const updateCheckingCellTile = (checkingTile: Tile): void => {
     if (currentCheckingCell === undefined) return;
 
     currentCheckingCell.checkingTile = checkingTile;
+    const decayTime = 0.35 * ((1000 - controls.animationSpeed) / 1000 - 0.2);
+    if (decayTime < 0) return;
+    mapHighlights.push({
+        type: 'checkTile',
+        x: currentCheckingCell.x,
+        y: currentCheckingCell.y,
+        color: '#34ade0',
+        currentDecay: 0,
+        maxDecay: 0.35 * ((1000 - controls.animationSpeed) / 1000 - 0.1),
+    });
 };
 
 const updateCheckingCellProgress = (checkingTile: Tile, progress: number): void => {
@@ -134,25 +158,27 @@ const updateCheckingCellProgress = (checkingTile: Tile, progress: number): void 
 
     currentCheckingCell.progress = progress;
 
+    const decayTime = 0.35 * ((1000 - controls.animationSpeed) / 1000 - 0.2);
+
     if (!currentCheckingCell.checkedSides[Direction.Up].includes(checkingTile.top)) {
         currentCheckingCell.checkedSides[Direction.Up].push(checkingTile.top);
         currentCheckingCell.checkedSides[Direction.Up].sort();
-        highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Up, '#34ade0', 0.5);
+        highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Up, '#34ade0', decayTime);
     }
     if (!currentCheckingCell.checkedSides[Direction.Right].includes(checkingTile.right)) {
         currentCheckingCell.checkedSides[Direction.Right].push(checkingTile.right);
         currentCheckingCell.checkedSides[Direction.Right].sort();
-        highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Right, '#34ade0', 0.5);
+        highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Right, '#34ade0', decayTime);
     }
     if (!currentCheckingCell.checkedSides[Direction.Down].includes(checkingTile.bottom)) {
         currentCheckingCell.checkedSides[Direction.Down].push(checkingTile.bottom);
         currentCheckingCell.checkedSides[Direction.Down].sort();
-        highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Down, '#34ade0', 0.5);
+        highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Down, '#34ade0', decayTime);
     }
     if (!currentCheckingCell.checkedSides[Direction.Left].includes(checkingTile.left)) {
         currentCheckingCell.checkedSides[Direction.Left].push(checkingTile.left);
         currentCheckingCell.checkedSides[Direction.Left].sort();
-        highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Left, '#34ade0', 0.5);
+        highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Left, '#34ade0', decayTime);
     }
 };
 
@@ -339,22 +365,6 @@ const drawCellSides = (
     }
 };
 
-const drawCell = (cell: MapCell, x: number, y: number, xoffset: number, yoffset: number): void => {
-    if (currentTilemap === undefined) return;
-
-    const cellTile = cell.possibleTiles[0];
-    if (cell.possibleTiles.length === 1) {
-        drawCellImage(x, y, xoffset, yoffset, cellTile.direction, cellTile.tilemapIndex);
-    } else {
-        drawCellSides(x, y, xoffset, yoffset, {
-            [Direction.Up]: cell.sides[Direction.Up].sort(),
-            [Direction.Right]: cell.sides[Direction.Right].sort(),
-            [Direction.Down]: cell.sides[Direction.Down].sort(),
-            [Direction.Left]: cell.sides[Direction.Left].sort(),
-        });
-    }
-};
-
 const draw = (): void => {
     const currentTime = Date.now();
     const dt = Date.now() - lastDrawTime;
@@ -397,121 +407,124 @@ const draw = (): void => {
             );
         }
 
-        for (const row of currentMaze.tiles) {
-            for (const tile of row) {
-                const pos = getPosOnCanvas({ x: tile.x, y: tile.y });
-                const posOffset = getPosOnCanvas({ x: tile.x + 1, y: tile.y + 1 });
+        if (shouldDrawMaze) {
+            for (const row of currentMaze.tiles) {
+                for (const tile of row) {
+                    const pos = getPosOnCanvas({ x: tile.x, y: tile.y });
+                    const posOffset = getPosOnCanvas({ x: tile.x + 1, y: tile.y + 1 });
+                    posOffset.x = Math.floor(posOffset.x) - Math.floor(pos.x);
+                    posOffset.y = Math.floor(posOffset.y) - Math.floor(pos.y);
+
+                    let shouldDrawArrow = false;
+                    let shouldDrawBackground = false;
+                    if (currentPath.includes(tile)) {
+                        if (!tile.isMaze) shouldDrawArrow = true;
+                        appCtx.fillStyle = '#aaffaa';
+                        shouldDrawBackground = true;
+                    } else if (tile.isMaze) {
+                        appCtx.fillStyle = '#dddddd';
+                        shouldDrawBackground = true;
+                    }
+                    if (shouldDrawBackground)
+                        appCtx.fillRect(
+                            Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
+                            Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
+                            Math.floor(posOffset.x) - mazeWallThickness,
+                            Math.floor(posOffset.y) - mazeWallThickness
+                        );
+
+                    if (shouldDrawArrow)
+                        drawArrow(pos.x + posOffset.x / 2, pos.y + posOffset.y / 2, tile.solverDirection);
+
+                    if (tile.walls.right.open || currentWalls.includes(tile.walls.right)) {
+                        appCtx.fillRect(
+                            Math.floor(pos.x + posOffset.x) - Math.ceil(mazeWallThickness / 2),
+                            Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
+                            mazeWallThickness,
+                            Math.floor(posOffset.y) - mazeWallThickness
+                        );
+                    }
+                    if (tile.walls.bottom.open || currentWalls.includes(tile.walls.bottom)) {
+                        appCtx.fillRect(
+                            Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
+                            Math.floor(pos.y + posOffset.y) - Math.ceil(mazeWallThickness / 2),
+                            Math.floor(posOffset.x) - mazeWallThickness,
+                            mazeWallThickness
+                        );
+                    }
+                }
+            }
+
+            for (let i = 0; i < mazeHighlights.length; i++) {
+                const highlight = mazeHighlights[i];
+                const pos = getPosOnCanvas({ x: highlight.x, y: highlight.y });
+                const posOffset = getPosOnCanvas({ x: highlight.x + 1, y: highlight.y + 1 });
                 posOffset.x = Math.floor(posOffset.x) - Math.floor(pos.x);
                 posOffset.y = Math.floor(posOffset.y) - Math.floor(pos.y);
 
-                let shouldDrawArrow = false;
-                let shouldDrawBackground = false;
-                if (currentPath.includes(tile)) {
-                    if (!tile.isMaze) shouldDrawArrow = true;
-                    appCtx.fillStyle = '#aaffaa';
-                    shouldDrawBackground = true;
-                } else if (tile.isMaze) {
-                    appCtx.fillStyle = '#dddddd';
-                    shouldDrawBackground = true;
-                }
-                if (shouldDrawBackground)
-                    appCtx.fillRect(
-                        Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
-                        Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
-                        Math.floor(posOffset.x) - mazeWallThickness,
-                        Math.floor(posOffset.y) - mazeWallThickness
-                    );
+                appCtx.fillStyle =
+                    highlight.color +
+                    Math.floor((1 - highlight.currentDecay / highlight.maxDecay) * 255)
+                        .toString(16)
+                        .padStart(2, '0');
 
-                if (shouldDrawArrow) drawArrow(pos.x + posOffset.x / 2, pos.y + posOffset.y / 2, tile.solverDirection);
+                appCtx.fillRect(
+                    Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
+                    Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
+                    Math.floor(posOffset.x) - mazeWallThickness,
+                    Math.floor(posOffset.y) - mazeWallThickness
+                );
 
-                if (tile.walls.right.open || currentWalls.includes(tile.walls.right)) {
+                if (
+                    currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.right) ||
+                    currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.right.open
+                ) {
                     appCtx.fillRect(
                         Math.floor(pos.x + posOffset.x) - Math.ceil(mazeWallThickness / 2),
                         Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
-                        mazeWallThickness,
+                        Math.ceil(mazeWallThickness / 2),
                         Math.floor(posOffset.y) - mazeWallThickness
                     );
                 }
-                if (tile.walls.bottom.open || currentWalls.includes(tile.walls.bottom)) {
+                if (
+                    currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.bottom) ||
+                    currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.bottom.open
+                ) {
                     appCtx.fillRect(
                         Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
                         Math.floor(pos.y + posOffset.y) - Math.ceil(mazeWallThickness / 2),
                         Math.floor(posOffset.x) - mazeWallThickness,
-                        mazeWallThickness
+                        Math.ceil(mazeWallThickness / 2)
                     );
                 }
-            }
-        }
+                if (
+                    currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.left) ||
+                    currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.left.open
+                ) {
+                    appCtx.fillRect(
+                        Math.floor(pos.x),
+                        Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
+                        Math.floor(mazeWallThickness / 2),
+                        Math.floor(posOffset.y) - mazeWallThickness
+                    );
+                }
+                if (
+                    currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.top) ||
+                    currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.top.open
+                ) {
+                    appCtx.fillRect(
+                        Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
+                        Math.floor(pos.y),
+                        Math.floor(posOffset.x) - mazeWallThickness,
+                        Math.floor(mazeWallThickness / 2)
+                    );
+                }
 
-        for (let i = 0; i < mazeHighlights.length; i++) {
-            const highlight = mazeHighlights[i];
-            const pos = getPosOnCanvas({ x: highlight.x, y: highlight.y });
-            const posOffset = getPosOnCanvas({ x: highlight.x + 1, y: highlight.y + 1 });
-            posOffset.x = Math.floor(posOffset.x) - Math.floor(pos.x);
-            posOffset.y = Math.floor(posOffset.y) - Math.floor(pos.y);
-
-            appCtx.fillStyle =
-                highlight.color +
-                Math.floor((1 - highlight.currentDecay / highlight.maxDecay) * 255)
-                    .toString(16)
-                    .padStart(2, '0');
-
-            appCtx.fillRect(
-                Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
-                Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
-                Math.floor(posOffset.x) - mazeWallThickness,
-                Math.floor(posOffset.y) - mazeWallThickness
-            );
-
-            if (
-                currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.right) ||
-                currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.right.open
-            ) {
-                appCtx.fillRect(
-                    Math.floor(pos.x + posOffset.x) - Math.ceil(mazeWallThickness / 2),
-                    Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
-                    Math.ceil(mazeWallThickness / 2),
-                    Math.floor(posOffset.y) - mazeWallThickness
-                );
-            }
-            if (
-                currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.bottom) ||
-                currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.bottom.open
-            ) {
-                appCtx.fillRect(
-                    Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
-                    Math.floor(pos.y + posOffset.y) - Math.ceil(mazeWallThickness / 2),
-                    Math.floor(posOffset.x) - mazeWallThickness,
-                    Math.ceil(mazeWallThickness / 2)
-                );
-            }
-            if (
-                currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.left) ||
-                currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.left.open
-            ) {
-                appCtx.fillRect(
-                    Math.floor(pos.x),
-                    Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
-                    Math.floor(mazeWallThickness / 2),
-                    Math.floor(posOffset.y) - mazeWallThickness
-                );
-            }
-            if (
-                currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.top) ||
-                currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.top.open
-            ) {
-                appCtx.fillRect(
-                    Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
-                    Math.floor(pos.y),
-                    Math.floor(posOffset.x) - mazeWallThickness,
-                    Math.floor(mazeWallThickness / 2)
-                );
-            }
-
-            highlight.currentDecay += dt / 1000;
-            if (highlight.currentDecay >= highlight.maxDecay) {
-                mazeHighlights.splice(i, 1);
-                i--;
+                highlight.currentDecay += dt / 1000;
+                if (highlight.currentDecay >= highlight.maxDecay) {
+                    mazeHighlights.splice(i, 1);
+                    i--;
+                }
             }
         }
     }
@@ -525,7 +538,26 @@ const draw = (): void => {
                 posOffset.x = Math.floor(posOffset.x) - Math.floor(pos.x);
                 posOffset.y = Math.floor(posOffset.y) - Math.floor(pos.y);
 
-                drawCell(cell, pos.x, pos.y, posOffset.x, posOffset.y);
+                const cellTile = cell.possibleTiles[0];
+                if (cell.possibleTiles.length === 1) {
+                    drawCellImage(pos.x, pos.y, posOffset.x, posOffset.y, cellTile.direction, cellTile.tilemapIndex);
+                } else {
+                    drawCellSides(pos.x, pos.y, posOffset.x, posOffset.y, {
+                        [Direction.Up]: cell.sides[Direction.Up].sort(),
+                        [Direction.Right]: cell.sides[Direction.Right].sort(),
+                        [Direction.Down]: cell.sides[Direction.Down].sort(),
+                        [Direction.Left]: cell.sides[Direction.Left].sort(),
+                    });
+                    appCtx.textAlign = 'center';
+                    appCtx.textBaseline = 'middle';
+                    appCtx.fillStyle = '#000000';
+                    appCtx.font = 'bold 20px Arial';
+                    appCtx.fillText(
+                        cell.possibleTiles.length.toString(),
+                        pos.x + posOffset.x / 2,
+                        pos.y + posOffset.y / 2
+                    );
+                }
             }
         }
 
@@ -537,11 +569,19 @@ const draw = (): void => {
             posOffset.x = Math.floor(posOffset.x) - Math.floor(pos.x);
             posOffset.y = Math.floor(posOffset.y) - Math.floor(pos.y);
 
+            appCtx.fillStyle = '#9c2e1e';
+            appCtx.fillRect(
+                Math.floor(pos.x) + sideThickness + Math.floor(mazeWallThickness / 2),
+                Math.floor(pos.y) + posOffset.y - sideThickness - Math.floor(mazeWallThickness / 2),
+                posOffset.x - sideThickness * 2 - mazeWallThickness,
+                -(posOffset.y - sideThickness * 2 - mazeWallThickness) * currentCheckingCell.progress
+            );
+
             drawCellImage(
-                pos.x + sideThickness * 2,
-                pos.y + sideThickness * 2,
-                posOffset.x - sideThickness * 4,
-                posOffset.y - sideThickness * 4,
+                Math.floor(pos.x) + sideThickness * 2 + Math.floor(mazeWallThickness / 2),
+                Math.floor(pos.y) + sideThickness * 2 + Math.floor(mazeWallThickness / 2),
+                posOffset.x - sideThickness * 4 - mazeWallThickness,
+                posOffset.y - sideThickness * 4 - mazeWallThickness,
                 currentCheckingCell.checkingTile.direction,
                 currentCheckingCell.checkingTile.tilemapIndex
             );
@@ -561,39 +601,52 @@ const draw = (): void => {
                     .toString(16)
                     .padStart(2, '0');
 
-            switch (highlight.direction) {
-                case Direction.Up:
-                    appCtx.fillRect(
-                        Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
-                        Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
-                        Math.floor(posOffset.x) - mazeWallThickness,
-                        sideThickness
-                    );
+            switch (highlight.type) {
+                case 'edge': {
+                    switch (highlight.direction) {
+                        case Direction.Up:
+                            appCtx.fillRect(
+                                Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
+                                Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
+                                Math.floor(posOffset.x) - mazeWallThickness,
+                                sideThickness
+                            );
+                            break;
+                        case Direction.Right:
+                            appCtx.fillRect(
+                                Math.floor(pos.x) + posOffset.x - Math.ceil(mazeWallThickness / 2),
+                                Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
+                                -sideThickness,
+                                Math.floor(posOffset.y) - mazeWallThickness
+                            );
+                            break;
+                        case Direction.Down:
+                            appCtx.fillRect(
+                                Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
+                                Math.floor(pos.y) + posOffset.y - Math.ceil(mazeWallThickness / 2),
+                                Math.floor(posOffset.x) - mazeWallThickness,
+                                -sideThickness
+                            );
+                            break;
+                        case Direction.Left:
+                            appCtx.fillRect(
+                                Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
+                                Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
+                                sideThickness,
+                                Math.floor(posOffset.y) - mazeWallThickness
+                            );
+                            break;
+                    }
                     break;
-                case Direction.Right:
+                }
+                case 'checkTile': {
                     appCtx.fillRect(
-                        Math.floor(pos.x) + posOffset.x - Math.ceil(mazeWallThickness / 2),
-                        Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
-                        -sideThickness,
-                        Math.floor(posOffset.y) - mazeWallThickness
+                        pos.x + sideThickness * 2,
+                        pos.y + sideThickness * 2,
+                        posOffset.x - sideThickness * 4,
+                        posOffset.y - sideThickness * 4
                     );
-                    break;
-                case Direction.Down:
-                    appCtx.fillRect(
-                        Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
-                        Math.floor(pos.y) + posOffset.y - Math.ceil(mazeWallThickness / 2),
-                        Math.floor(posOffset.x) - mazeWallThickness,
-                        -sideThickness
-                    );
-                    break;
-                case Direction.Left:
-                    appCtx.fillRect(
-                        Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
-                        Math.floor(pos.y) + Math.floor(mazeWallThickness / 2),
-                        sideThickness,
-                        Math.floor(posOffset.y) - mazeWallThickness
-                    );
-                    break;
+                }
             }
 
             highlight.currentDecay += dt / 1000;
