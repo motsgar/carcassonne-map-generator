@@ -1,7 +1,7 @@
-import { CarcassonneMap, MapCell, Side, Tile } from './collapse';
+import { CarcassonneMap, Side, Tile } from './collapse';
 import controls from './controls';
 import { Maze, MazeCell, Wall } from './maze';
-import { Direction, TilemapData } from './utils';
+import { Direction, getSleepMs, TilemapData } from './utils';
 
 type Highlight = {
     x: number;
@@ -149,7 +149,7 @@ const updateCheckingCellTile = (checkingTile: Tile): void => {
     if (currentCheckingCell === undefined) return;
 
     currentCheckingCell.checkingTile = checkingTile;
-    const decayTime = 0.35 * ((1000 - controls.animationSpeed) / 1000 - 0.2);
+    const decayTime = (getSleepMs(controls.animationSpeed, 0.1) - 100) / 1000;
     if (decayTime < 0) return;
     mapHighlights.push({
         type: 'checkTile',
@@ -157,14 +157,14 @@ const updateCheckingCellTile = (checkingTile: Tile): void => {
         y: currentCheckingCell.y,
         color: '#34ade0',
         currentDecay: 0,
-        maxDecay: 0.35 * ((1000 - controls.animationSpeed) / 1000 - 0.1),
+        maxDecay: decayTime,
     });
 };
 
 const addCheckedSides = (checkingTile: Tile): void => {
     if (currentCheckingCell === undefined) return;
 
-    const decayTime = 0.35 * ((1000 - controls.animationSpeed) / 1000 - 0.2);
+    const decayTime = (getSleepMs(controls.animationSpeed, 0.1) - 100) / 1000;
 
     if (!currentCheckingCell.checkedSides[Direction.Up].includes(checkingTile.top)) {
         currentCheckingCell.checkedSides[Direction.Up].push(checkingTile.top);

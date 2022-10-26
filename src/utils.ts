@@ -235,4 +235,17 @@ const sleep = async (ms: number): Promise<void> => {
     }
 };
 
-export { limitMapToMaze, createAllPossibleTiles, createTilesFromTilemapData, parseTilemapData, shuffleArray, sleep };
+const getSleepMs = (animationSpeed: number, steepness = 0.005): number => {
+    const normalizedSpeed = animationSpeed / 1000;
+    return (1.00005 - (Math.pow(steepness, normalizedSpeed) - 1) / (steepness - 1)) * 1000;
+};
+
+export {
+    limitMapToMaze,
+    createAllPossibleTiles,
+    createTilesFromTilemapData,
+    parseTilemapData,
+    shuffleArray,
+    sleep,
+    getSleepMs,
+};

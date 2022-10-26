@@ -8,7 +8,7 @@ import {
     setSleepMs as setCollapseSleepMs,
     cancelProcessingMap,
 } from './collapse';
-import { createTilesFromTilemapData, limitMapToMaze, parseTilemapData, TilemapData } from './utils';
+import { createTilesFromTilemapData, getSleepMs, limitMapToMaze, parseTilemapData, TilemapData } from './utils';
 import {
     createMaze,
     processMaze,
@@ -50,13 +50,6 @@ let mazeLimitingStarted = false;
 let mapGenerationStarted = false;
 
 // Functions
-
-const collapseSleepDevider = 30;
-const getSleepMs = (animationSpeed: number): number => {
-    const normalizedSpeed = animationSpeed / 1000;
-    const steepness = 0.001;
-    return (1 - (Math.pow(steepness, normalizedSpeed) - 1) / (steepness - 1)) * 1000;
-};
 
 // Callback handlers
 const mazeProcessingCallback = (event: MazeEvent): void => {
@@ -152,7 +145,7 @@ const limitMap = async (): Promise<void> => {
     mapLimited = true;
     mazeLimitingStarted = false;
 
-    setCollapseSleepMs(getSleepMs(controls.animationSpeed) / collapseSleepDevider);
+    setCollapseSleepMs(getSleepMs(controls.animationSpeed, 0.001));
 };
 
 const startWFCAnimation = async (): Promise<void> => {
@@ -164,7 +157,7 @@ const startWFCAnimation = async (): Promise<void> => {
     if (mapDone) return;
     mapGenerationStarted = true;
 
-    setCollapseSleepMs(getSleepMs(controls.animationSpeed) / collapseSleepDevider);
+    setCollapseSleepMs(getSleepMs(controls.animationSpeed, 0.001));
 
     collapsingMapRunning = true;
     await fullCollapse(map, collapsingCallback);
@@ -182,7 +175,7 @@ const startFullAnimation = async (): Promise<void> => {
     if (!mapLimited) await limitMap();
     if (!fullAnimationRunning) return;
 
-    setCollapseSleepMs(getSleepMs(controls.animationSpeed) / collapseSleepDevider);
+    setCollapseSleepMs(getSleepMs(controls.animationSpeed, 0.001));
     if (!mapDone) await startWFCAnimation();
 };
 
@@ -253,9 +246,8 @@ controls.on('showMap', () => {
 });
 
 controls.on('animationSpeed', (speed) => {
-    const sleepMs = getSleepMs(speed);
-    setMazeSleepMs(sleepMs);
-    setCollapseSleepMs(sleepMs / collapseSleepDevider);
+    setMazeSleepMs(getSleepMs(speed));
+    setCollapseSleepMs(getSleepMs(speed, 0.001));
 });
 
 controls.on('width', async () => {
@@ -418,7 +410,7 @@ Promise.all(fetchPromises).then(([tilemapDataObject, tilemapImage]) => {
 });
 
 setMazeSleepMs(getSleepMs(controls.animationSpeed));
-setCollapseSleepMs(getSleepMs(controls.animationSpeed) / collapseSleepDevider);
+setCollapseSleepMs(getSleepMs(controls.animationSpeed, 0.001));
 setPathPercentage(controls.mazePathPercentage);
 setRandomWallRemovePercentage(controls.randomWallRemovePercentage);
 ui.setWallThickness(controls.wallThickness);
