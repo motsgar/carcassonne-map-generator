@@ -69,6 +69,12 @@ export type CollapseEvent =
           progress: number;
       }
     | {
+          type: 'successCheckTile';
+          x: number;
+          y: number;
+          tile: Tile;
+      }
+    | {
           type: 'initCheckTile';
           x: number;
           y: number;
@@ -180,10 +186,49 @@ const printMap = (map: CarcassonneMap): void => {
     console.log(outputString);
 };
 
+let processingMap = false;
+let shouldProcessMap = true;
+let mapProcessingStartTime = 0;
+let mapProcessingSleepsHappened = 0;
+
 let sleepMs = 2;
 
 const setSleepMs = (ms: number): void => {
+    const timeShouldTaken = sleepMs * mapProcessingSleepsHappened;
+    const newTimeShouldTaken = ms * mapProcessingSleepsHappened;
+    mapProcessingStartTime += timeShouldTaken - newTimeShouldTaken;
     sleepMs = ms;
+};
+
+const cancelProcessingMap = (): Promise<void> => {
+    if (processingMap) {
+        shouldProcessMap = false;
+        return new Promise((resolve) => {
+            const interval = setInterval(() => {
+                if (!processingMap) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 10);
+        });
+    }
+    return Promise.resolve();
+};
+
+const advancedSleep = async (): Promise<void> => {
+    if (!shouldProcessMap) {
+        shouldProcessMap = true;
+        processingMap = false;
+
+        throw new Error('Map processing was canceled');
+    }
+    mapProcessingSleepsHappened++;
+    const currentTime = Date.now();
+    const timeShouldHavePassed = sleepMs * mapProcessingSleepsHappened;
+    const timePassed = currentTime - mapProcessingStartTime;
+    if (timePassed < timeShouldHavePassed) {
+        await sleep(timeShouldHavePassed - timePassed);
+    }
 };
 
 type PossibleTiles = { tiles: Tile[]; sides: MapCell['sides'] };
@@ -224,7 +269,7 @@ const getPossibleTiles = async (
         });
 
         if (y > 0) {
-            if (sleepMs > 0) await sleep(sleepMs);
+            await advancedSleep();
             if (!map.cells[y - 1][x].sides[Direction.Down].includes(tile.top)) {
                 collapseEvent?.({
                     type: 'checkSide',
@@ -233,7 +278,7 @@ const getPossibleTiles = async (
                     direction: Direction.Up,
                     success: false,
                 });
-                if (sleepMs > 0) await sleep(sleepMs);
+                await advancedSleep();
                 continue;
             } else {
                 collapseEvent?.({
@@ -248,7 +293,7 @@ const getPossibleTiles = async (
         if (!sides[Direction.Up].includes(tile.top)) sides[Direction.Up].push(tile.top);
 
         if (x < map.width - 1) {
-            if (sleepMs > 0) await sleep(sleepMs);
+            await advancedSleep();
             if (!map.cells[y][x + 1].sides[Direction.Left].includes(tile.right)) {
                 collapseEvent?.({
                     type: 'checkSide',
@@ -257,7 +302,7 @@ const getPossibleTiles = async (
                     direction: Direction.Right,
                     success: false,
                 });
-                if (sleepMs > 0) await sleep(sleepMs);
+                await advancedSleep();
                 continue;
             } else {
                 collapseEvent?.({
@@ -272,7 +317,7 @@ const getPossibleTiles = async (
         if (!sides[Direction.Right].includes(tile.right)) sides[Direction.Right].push(tile.right);
 
         if (y < map.height - 1) {
-            if (sleepMs > 0) await sleep(sleepMs);
+            await advancedSleep();
             if (!map.cells[y + 1][x].sides[Direction.Up].includes(tile.bottom)) {
                 collapseEvent?.({
                     type: 'checkSide',
@@ -281,7 +326,7 @@ const getPossibleTiles = async (
                     direction: Direction.Down,
                     success: false,
                 });
-                if (sleepMs > 0) await sleep(sleepMs);
+                await advancedSleep();
                 continue;
             } else {
                 collapseEvent?.({
@@ -296,7 +341,7 @@ const getPossibleTiles = async (
         if (!sides[Direction.Down].includes(tile.bottom)) sides[Direction.Down].push(tile.bottom);
 
         if (x > 0) {
-            if (sleepMs > 0) await sleep(sleepMs);
+            await advancedSleep();
             if (!map.cells[y][x - 1].sides[Direction.Right].includes(tile.left)) {
                 collapseEvent?.({
                     type: 'checkSide',
@@ -305,7 +350,7 @@ const getPossibleTiles = async (
                     direction: Direction.Left,
                     success: false,
                 });
-                if (sleepMs > 0) await sleep(sleepMs);
+                await advancedSleep();
                 continue;
             } else {
                 collapseEvent?.({
@@ -319,7 +364,14 @@ const getPossibleTiles = async (
         }
         if (!sides[Direction.Left].includes(tile.left)) sides[Direction.Left].push(tile.left);
 
-        if (sleepMs > 0) await sleep(sleepMs);
+        await advancedSleep();
+
+        collapseEvent?.({
+            type: 'successCheckTile',
+            x,
+            y,
+            tile,
+        });
 
         filteredTiles.push(tile);
     }
@@ -457,55 +509,77 @@ const resetOldCellStates = (map: CarcassonneMap, oldCellStates: OldCellStates): 
 };
 
 const fullCollapse = async (map: CarcassonneMap, collapseEvent?: CollapseEventCallback): Promise<void> => {
-    let nonCollapsedTiles = map.cells.flat();
-    const oldCellStates: OldCellStates[] = [];
+    try {
+        processingMap = true;
+        mapProcessingStartTime = Date.now();
+        mapProcessingSleepsHappened = 0;
 
-    let currentPriorityCell: MapCell | undefined = undefined;
+        let nonCollapsedTiles = map.cells.flat();
+        const oldCellStates: OldCellStates[] = [];
 
-    while (true) {
-        nonCollapsedTiles = nonCollapsedTiles
-            .filter((tile) => !tile.collapsed)
-            .sort((a, b) => {
-                if (a === currentPriorityCell) return -1;
-                if (b === currentPriorityCell) return 1;
-                return a.possibleTiles.length - b.possibleTiles.length;
-            });
+        let currentPriorityCell: MapCell | undefined = undefined;
 
-        if (nonCollapsedTiles.length === 0) break;
+        while (true) {
+            nonCollapsedTiles = nonCollapsedTiles
+                .filter((tile) => !tile.collapsed)
+                .sort((a, b) => {
+                    if (a === currentPriorityCell) return -1;
+                    if (b === currentPriorityCell) return 1;
+                    return a.possibleTiles.length - b.possibleTiles.length;
+                });
 
-        const tileToCollapse = nonCollapsedTiles[0];
-        const originalPossibilitiesLength = tileToCollapse.possibleTiles.length;
+            if (nonCollapsedTiles.length === 0) break;
 
-        let tileIndex = 0;
-        shuffleArray(tileToCollapse.possibleTiles);
+            const tileToCollapse = nonCollapsedTiles[0];
+            const originalPossibilitiesLength = tileToCollapse.possibleTiles.length;
 
-        while (tileIndex < tileToCollapse.possibleTiles.length) {
-            const collapseResult = await collapse(
-                map,
-                tileToCollapse.x,
-                tileToCollapse.y,
-                tileToCollapse.possibleTiles[tileIndex],
-                collapseEvent
-            );
+            let tileIndex = 0;
+            shuffleArray(tileToCollapse.possibleTiles);
 
-            if (collapseResult.success) {
-                oldCellStates.push(collapseResult.oldCellStates);
+            while (tileIndex < tileToCollapse.possibleTiles.length) {
+                const collapseResult = await collapse(
+                    map,
+                    tileToCollapse.x,
+                    tileToCollapse.y,
+                    tileToCollapse.possibleTiles[tileIndex],
+                    collapseEvent
+                );
 
-                break;
+                if (collapseResult.success) {
+                    oldCellStates.push(collapseResult.oldCellStates);
+
+                    break;
+                }
+
+                resetOldCellStates(map, collapseResult.oldCellStates);
+                tileIndex++;
             }
-
-            resetOldCellStates(map, collapseResult.oldCellStates);
-            tileIndex++;
+            if (tileIndex === originalPossibilitiesLength) {
+                currentPriorityCell = tileToCollapse;
+                const latestOldCellStates = oldCellStates.pop();
+                if (latestOldCellStates === undefined)
+                    throw new Error('Impossible to collapse the map, no tiles left to collapse');
+                resetOldCellStates(map, latestOldCellStates);
+                nonCollapsedTiles = map.cells.flat();
+            }
         }
-        if (tileIndex === originalPossibilitiesLength) {
-            currentPriorityCell = tileToCollapse;
-            const latestOldCellStates = oldCellStates.pop();
-            if (latestOldCellStates === undefined)
-                throw new Error('Impossible to collapse the map, no tiles left to collapse');
-            resetOldCellStates(map, latestOldCellStates);
-            nonCollapsedTiles = map.cells.flat();
+    } catch (e) {
+        if (e instanceof Error) {
+            if (e.message === 'Map processing was canceled') {
+                return;
+            }
         }
+        throw e;
     }
 };
 
-export { collapse, limitTilePossibilities, fullCollapse, printMap, createMap, resetOldCellStates, setSleepMs };
+export {
+    collapse,
+    limitTilePossibilities,
+    fullCollapse,
+    printMap,
+    createMap,
+    resetOldCellStates,
+    setSleepMs,
+    cancelProcessingMap,
+};

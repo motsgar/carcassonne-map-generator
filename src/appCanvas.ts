@@ -31,8 +31,8 @@ let cameraPosY = 8;
 
 let lastDrawTime = Date.now();
 
-const shouldDrawMaze = true;
-const shouldDrawMap = true;
+let shouldDrawMaze = true;
+let shouldDrawMap = false;
 
 const mazeHighlights: Highlight[] = [];
 const mapHighlights: (
@@ -61,6 +61,14 @@ let currentWalls: Wall[] = [];
 
 let currentTilemap: { image: HTMLImageElement; tilemapData: TilemapData } | undefined = undefined;
 let currentCarcassonneMap: CarcassonneMap | undefined = undefined;
+
+const setShouldDrawMaze = (shouldDraw: boolean): void => {
+    shouldDrawMaze = shouldDraw;
+};
+
+const setShouldDrawMap = (shouldDraw: boolean): void => {
+    shouldDrawMap = shouldDraw;
+};
 
 const setWallThickness = (width: number): void => {
     mazeWallThickness = width;
@@ -153,10 +161,8 @@ const updateCheckingCellTile = (checkingTile: Tile): void => {
     });
 };
 
-const updateCheckingCellProgress = (checkingTile: Tile, progress: number): void => {
+const addCheckedSides = (checkingTile: Tile): void => {
     if (currentCheckingCell === undefined) return;
-
-    currentCheckingCell.progress = progress;
 
     const decayTime = 0.35 * ((1000 - controls.animationSpeed) / 1000 - 0.2);
 
@@ -180,6 +186,12 @@ const updateCheckingCellProgress = (checkingTile: Tile, progress: number): void 
         currentCheckingCell.checkedSides[Direction.Left].sort();
         highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Left, '#34ade0', decayTime);
     }
+};
+
+const updateCheckingCellProgress = (progress: number): void => {
+    if (currentCheckingCell === undefined) return;
+
+    currentCheckingCell.progress = progress;
 };
 
 const getPosOnCanvas = (pos: { x: number; y: number }): { x: number; y: number } => {
@@ -529,7 +541,7 @@ const draw = (): void => {
         }
     }
 
-    if (currentCarcassonneMap !== undefined) {
+    if (currentCarcassonneMap !== undefined && shouldDrawMap) {
         for (const row of currentCarcassonneMap.cells) {
             for (const cell of row) {
                 if (cell.x === currentCheckingCell?.x && cell.y === currentCheckingCell?.y) continue;
@@ -730,4 +742,7 @@ export {
     checkMapCell,
     updateCheckingCellTile,
     updateCheckingCellProgress,
+    setShouldDrawMaze,
+    setShouldDrawMap,
+    addCheckedSides,
 };
