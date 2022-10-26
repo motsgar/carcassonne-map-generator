@@ -194,7 +194,6 @@ let mapProcessingSleepsHappened = 0;
 let sleepMs = 0;
 
 const setSleepMs = (ms: number): void => {
-    console.log(ms);
     const timeShouldTaken = sleepMs * mapProcessingSleepsHappened;
     const newTimeShouldTaken = ms * mapProcessingSleepsHappened;
     mapProcessingStartTime += timeShouldTaken - newTimeShouldTaken;
