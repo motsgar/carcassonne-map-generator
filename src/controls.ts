@@ -57,8 +57,8 @@ class ControlEvent extends EventEmitter {
         super();
 
         this.animationSpeed = 500;
-        this.width = 8;
-        this.height = 7;
+        this.width = 30;
+        this.height = 28;
         this.wallThickness = 2;
 
         this.mazePathPercentage = 0.5;
