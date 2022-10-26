@@ -132,20 +132,21 @@ const limitMap = async (): Promise<void> => {
     if (mapLimited) return;
     mazeLimitingStarted = true;
 
-    setCollapseSleepMs(0);
-
     mazeLimitingRunning = true;
-    await limitMapToMaze(map, maze, {
-        sideType: Side.Road,
-        allowTilesOutsideWithSide: false,
-        allowSideConnections: false,
-    });
+    await limitMapToMaze(
+        map,
+        maze,
+        {
+            sideType: Side.Road,
+            allowTilesOutsideWithSide: false,
+            allowSideConnections: false,
+        },
+        collapsingCallback
+    );
     if (!mazeLimitingRunning) return;
     mazeLimitingRunning = false;
     mapLimited = true;
     mazeLimitingStarted = false;
-
-    setCollapseSleepMs(getSleepMs(controls.animationSpeed, 0.001));
 };
 
 const startWFCAnimation = async (): Promise<void> => {
@@ -157,7 +158,7 @@ const startWFCAnimation = async (): Promise<void> => {
     if (mapDone) return;
     mapGenerationStarted = true;
 
-    setCollapseSleepMs(getSleepMs(controls.animationSpeed, 0.001));
+    setCollapseSleepMs(getSleepMs(controls.animationSpeed, 0.0001));
 
     collapsingMapRunning = true;
     await fullCollapse(map, collapsingCallback);
@@ -175,7 +176,7 @@ const startFullAnimation = async (): Promise<void> => {
     if (!mapLimited) await limitMap();
     if (!fullAnimationRunning) return;
 
-    setCollapseSleepMs(getSleepMs(controls.animationSpeed, 0.001));
+    setCollapseSleepMs(getSleepMs(controls.animationSpeed, 0.0001));
     if (!mapDone) await startWFCAnimation();
 };
 
@@ -248,7 +249,7 @@ controls.on('showMap', () => {
 
 controls.on('animationSpeed', (speed) => {
     setMazeSleepMs(getSleepMs(speed));
-    setCollapseSleepMs(getSleepMs(speed, 0.001));
+    setCollapseSleepMs(getSleepMs(speed, 0.0001));
 });
 
 controls.on('width', async () => {
@@ -415,7 +416,7 @@ Promise.all(fetchPromises).then(([tilemapDataObject, tilemapImage]) => {
 });
 
 setMazeSleepMs(getSleepMs(controls.animationSpeed));
-setCollapseSleepMs(getSleepMs(controls.animationSpeed, 0.001));
+setCollapseSleepMs(getSleepMs(controls.animationSpeed, 0.0001));
 setPathPercentage(controls.mazePathPercentage);
 setRandomWallRemovePercentage(controls.randomWallRemovePercentage);
 ui.setWallThickness(controls.wallThickness);

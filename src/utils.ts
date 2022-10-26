@@ -1,4 +1,4 @@
-import { CarcassonneMap, Side, limitTilePossibilities, Tile } from './collapse';
+import { CarcassonneMap, Side, limitTilePossibilities, Tile, CollapseEventCallback } from './collapse';
 import { Maze } from './maze';
 import * as zod from 'zod';
 
@@ -156,7 +156,12 @@ const createAllPossibleTiles = (): Tile[] => {
     return tiles;
 };
 
-const limitMapToMaze = async (map: CarcassonneMap, maze: Maze, options: MazeLimitOptions): Promise<void> => {
+const limitMapToMaze = async (
+    map: CarcassonneMap,
+    maze: Maze,
+    options: MazeLimitOptions,
+    collapseEvent?: CollapseEventCallback
+): Promise<void> => {
     if (!options.allowTilesOutsideWithSide) options.allowSideConnections = false;
 
     for (let y = 0; y < map.height; y++) {
@@ -178,7 +183,8 @@ const limitMapToMaze = async (map: CarcassonneMap, maze: Maze, options: MazeLimi
                                 tile.top !== options.sideType &&
                                 tile.left !== options.sideType &&
                                 tile.right !== options.sideType
-                        )
+                        ),
+                        collapseEvent
                     );
 
                     if (!limitationResult.success) {
@@ -206,7 +212,8 @@ const limitMapToMaze = async (map: CarcassonneMap, maze: Maze, options: MazeLimi
                         if (tile.left !== options.sideType) return false;
                     } else if (!options.allowSideConnections && tile.left === options.sideType) return false;
                     return true;
-                })
+                }),
+                collapseEvent
             );
             if (!limitationResult.success) {
                 throw new Error(`Could not limit tilemap to maze. No possible tiles left at (${x}, ${y})`);
@@ -237,7 +244,7 @@ const sleep = async (ms: number): Promise<void> => {
 
 const getSleepMs = (animationSpeed: number, steepness = 0.005): number => {
     const normalizedSpeed = animationSpeed / 1000;
-    return (1.00005 - (Math.pow(steepness, normalizedSpeed) - 1) / (steepness - 1)) * 1000;
+    return (1.00001 - (Math.pow(steepness, normalizedSpeed) - 1) / (steepness - 1)) * 1000 - 0.009;
 };
 
 export {

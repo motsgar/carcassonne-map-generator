@@ -194,6 +194,7 @@ let mapProcessingSleepsHappened = 0;
 let sleepMs = 0;
 
 const setSleepMs = (ms: number): void => {
+    console.log(ms);
     const timeShouldTaken = sleepMs * mapProcessingSleepsHappened;
     const newTimeShouldTaken = ms * mapProcessingSleepsHappened;
     mapProcessingStartTime += timeShouldTaken - newTimeShouldTaken;
@@ -260,34 +261,37 @@ const getPossibleTiles = async (
     for (let i = 0; i < tiles.length; i++) {
         tile = tiles[i];
 
-        collapseEvent?.({
-            type: 'setCheckTile',
-            x,
-            y,
-            tile,
-            progress: i / tiles.length,
-        });
+        if (sleepMs > 0.3)
+            collapseEvent?.({
+                type: 'setCheckTile',
+                x,
+                y,
+                tile,
+                progress: i / tiles.length,
+            });
 
         if (y > 0) {
             await advancedSleep();
             if (!map.cells[y - 1][x].sides[Direction.Down].includes(tile.top)) {
-                collapseEvent?.({
-                    type: 'checkSide',
-                    x,
-                    y,
-                    direction: Direction.Up,
-                    success: false,
-                });
+                if (sleepMs > 0.3)
+                    collapseEvent?.({
+                        type: 'checkSide',
+                        x,
+                        y,
+                        direction: Direction.Up,
+                        success: false,
+                    });
                 await advancedSleep();
                 continue;
             } else {
-                collapseEvent?.({
-                    type: 'checkSide',
-                    x,
-                    y,
-                    direction: Direction.Up,
-                    success: true,
-                });
+                if (sleepMs > 0.3)
+                    collapseEvent?.({
+                        type: 'checkSide',
+                        x,
+                        y,
+                        direction: Direction.Up,
+                        success: true,
+                    });
             }
         }
         if (!sides[Direction.Up].includes(tile.top)) sides[Direction.Up].push(tile.top);
@@ -295,23 +299,25 @@ const getPossibleTiles = async (
         if (x < map.width - 1) {
             await advancedSleep();
             if (!map.cells[y][x + 1].sides[Direction.Left].includes(tile.right)) {
-                collapseEvent?.({
-                    type: 'checkSide',
-                    x,
-                    y,
-                    direction: Direction.Right,
-                    success: false,
-                });
+                if (sleepMs > 0.3)
+                    collapseEvent?.({
+                        type: 'checkSide',
+                        x,
+                        y,
+                        direction: Direction.Right,
+                        success: false,
+                    });
                 await advancedSleep();
                 continue;
             } else {
-                collapseEvent?.({
-                    type: 'checkSide',
-                    x,
-                    y,
-                    direction: Direction.Right,
-                    success: true,
-                });
+                if (sleepMs > 0.3)
+                    collapseEvent?.({
+                        type: 'checkSide',
+                        x,
+                        y,
+                        direction: Direction.Right,
+                        success: true,
+                    });
             }
         }
         if (!sides[Direction.Right].includes(tile.right)) sides[Direction.Right].push(tile.right);
@@ -319,23 +325,25 @@ const getPossibleTiles = async (
         if (y < map.height - 1) {
             await advancedSleep();
             if (!map.cells[y + 1][x].sides[Direction.Up].includes(tile.bottom)) {
-                collapseEvent?.({
-                    type: 'checkSide',
-                    x,
-                    y,
-                    direction: Direction.Down,
-                    success: false,
-                });
+                if (sleepMs > 0.3)
+                    collapseEvent?.({
+                        type: 'checkSide',
+                        x,
+                        y,
+                        direction: Direction.Down,
+                        success: false,
+                    });
                 await advancedSleep();
                 continue;
             } else {
-                collapseEvent?.({
-                    type: 'checkSide',
-                    x,
-                    y,
-                    direction: Direction.Down,
-                    success: true,
-                });
+                if (sleepMs > 0.3)
+                    collapseEvent?.({
+                        type: 'checkSide',
+                        x,
+                        y,
+                        direction: Direction.Down,
+                        success: true,
+                    });
             }
         }
         if (!sides[Direction.Down].includes(tile.bottom)) sides[Direction.Down].push(tile.bottom);
@@ -343,35 +351,38 @@ const getPossibleTiles = async (
         if (x > 0) {
             await advancedSleep();
             if (!map.cells[y][x - 1].sides[Direction.Right].includes(tile.left)) {
-                collapseEvent?.({
-                    type: 'checkSide',
-                    x,
-                    y,
-                    direction: Direction.Left,
-                    success: false,
-                });
+                if (sleepMs > 0.3)
+                    collapseEvent?.({
+                        type: 'checkSide',
+                        x,
+                        y,
+                        direction: Direction.Left,
+                        success: false,
+                    });
                 await advancedSleep();
                 continue;
             } else {
-                collapseEvent?.({
-                    type: 'checkSide',
-                    x,
-                    y,
-                    direction: Direction.Left,
-                    success: true,
-                });
+                if (sleepMs > 0.3)
+                    collapseEvent?.({
+                        type: 'checkSide',
+                        x,
+                        y,
+                        direction: Direction.Left,
+                        success: true,
+                    });
             }
         }
         if (!sides[Direction.Left].includes(tile.left)) sides[Direction.Left].push(tile.left);
 
         await advancedSleep();
 
-        collapseEvent?.({
-            type: 'successCheckTile',
-            x,
-            y,
-            tile,
-        });
+        if (sleepMs > 0.3)
+            collapseEvent?.({
+                type: 'successCheckTile',
+                x,
+                y,
+                tile,
+            });
 
         filteredTiles.push(tile);
     }
@@ -396,6 +407,11 @@ const limitTilePossibilities = async (
     collapseEvent?: CollapseEventCallback,
     oldCellStatesParam?: OldCellStates
 ): Promise<LimitationResult> => {
+    if (oldCellStatesParam === undefined) {
+        processingMap = true;
+        mapProcessingStartTime = Date.now();
+        mapProcessingSleepsHappened = 0;
+    }
     const oldCellStates = oldCellStatesParam ?? new Map<number, Map<number, CellState>>();
 
     if (!oldCellStates.has(y)) oldCellStates.set(y, new Map<number, CellState>());
