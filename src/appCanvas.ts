@@ -94,6 +94,20 @@ type CurrentCheckingCell = {
 
 let currentCheckingCell: CurrentCheckingCell | undefined = undefined;
 
+const highlightMapCellCheck = (x: number, y: number, direction: Direction, color: string, decayTime: number): void => {
+    if (currentCheckingCell === undefined) return;
+
+    mapHighlights.push({
+        type: 'cell',
+        x,
+        y,
+        color,
+        currentDecay: 0,
+        maxDecay: decayTime,
+        direction,
+    });
+};
+
 const checkMapCell = (x: number, y: number, checkingTile: Tile): void => {
     currentCheckingCell = {
         x,
@@ -109,32 +123,37 @@ const checkMapCell = (x: number, y: number, checkingTile: Tile): void => {
     };
 };
 
-const updateCheckMapCell = (checkingTile: Tile): void => {
+const updateCheckingCellTile = (checkingTile: Tile): void => {
     if (currentCheckingCell === undefined) return;
 
     currentCheckingCell.checkingTile = checkingTile;
 };
 
-const;
-
-const highlightMapCellCheck = (
-    x: number,
-    y: number,
-    direction: Direction,
-    success: boolean,
-    decayTime: number
-): void => {
+const updateCheckingCellProgress = (checkingTile: Tile, progress: number): void => {
     if (currentCheckingCell === undefined) return;
 
-    mapHighlights.push({
-        type: 'cell',
-        x,
-        y,
-        color: success ? '#00ff00' : '#ff0000',
-        currentDecay: 0,
-        maxDecay: decayTime,
-        direction,
-    });
+    currentCheckingCell.progress = progress;
+
+    if (!currentCheckingCell.checkedSides[Direction.Up].includes(checkingTile.top)) {
+        currentCheckingCell.checkedSides[Direction.Up].push(checkingTile.top);
+        currentCheckingCell.checkedSides[Direction.Up].sort();
+        highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Up, '#34ade0', 0.5);
+    }
+    if (!currentCheckingCell.checkedSides[Direction.Right].includes(checkingTile.right)) {
+        currentCheckingCell.checkedSides[Direction.Right].push(checkingTile.right);
+        currentCheckingCell.checkedSides[Direction.Right].sort();
+        highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Right, '#34ade0', 0.5);
+    }
+    if (!currentCheckingCell.checkedSides[Direction.Down].includes(checkingTile.bottom)) {
+        currentCheckingCell.checkedSides[Direction.Down].push(checkingTile.bottom);
+        currentCheckingCell.checkedSides[Direction.Down].sort();
+        highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Down, '#34ade0', 0.5);
+    }
+    if (!currentCheckingCell.checkedSides[Direction.Left].includes(checkingTile.left)) {
+        currentCheckingCell.checkedSides[Direction.Left].push(checkingTile.left);
+        currentCheckingCell.checkedSides[Direction.Left].sort();
+        highlightMapCellCheck(currentCheckingCell.x, currentCheckingCell.y, Direction.Left, '#34ade0', 0.5);
+    }
 };
 
 const getPosOnCanvas = (pos: { x: number; y: number }): { x: number; y: number } => {
@@ -328,10 +347,10 @@ const drawCell = (cell: MapCell, x: number, y: number, xoffset: number, yoffset:
         drawCellImage(x, y, xoffset, yoffset, cellTile.direction, cellTile.tilemapIndex);
     } else {
         drawCellSides(x, y, xoffset, yoffset, {
-            [Direction.Up]: [...cell.sides.top],
-            [Direction.Right]: [...cell.sides.right],
-            [Direction.Down]: [...cell.sides.bottom],
-            [Direction.Left]: [...cell.sides.left],
+            [Direction.Up]: cell.sides[Direction.Up].sort(),
+            [Direction.Right]: cell.sides[Direction.Right].sort(),
+            [Direction.Down]: cell.sides[Direction.Down].sort(),
+            [Direction.Left]: cell.sides[Direction.Left].sort(),
         });
     }
 };
@@ -656,5 +675,6 @@ export {
     setWallThickness,
     highlightMapCellCheck,
     checkMapCell,
-    updateCheckMapCell,
+    updateCheckingCellTile,
+    updateCheckingCellProgress,
 };

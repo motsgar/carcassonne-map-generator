@@ -28,7 +28,7 @@ const currentTilemap: { image: HTMLImageElement | undefined; tilemapData: Tilema
 };
 
 const getSleepMs = (animationSpeed: number): number => {
-    const sleepMs = 691.1 - Math.log(animationSpeed + 1) * 100;
+    const sleepMs = 691.001 - Math.log(animationSpeed + 1) * 100;
     return sleepMs;
 };
 
@@ -53,17 +53,17 @@ const collapsingCallback = (event: CollapseEvent): void => {
             ui.checkMapCell(event.x, event.y, event.tile);
             break;
         case 'setCheckTile':
-            ui.updateCheckMapCell(event.tile);
+            ui.updateCheckingCellTile(event.tile);
             break;
         case 'successTile':
-            ui.updateCheckMapCell(event.tile, event.progress);
+            ui.updateCheckingCellProgress(event.tile, event.progress);
             break;
         case 'checkSide':
             ui.highlightMapCellCheck(
                 event.x,
                 event.y,
                 event.direction,
-                event.success,
+                event.success ? '#00ff00' : '#ff0000',
                 (1010 - controls.animationSpeed) / 1000 / 3
             );
 
