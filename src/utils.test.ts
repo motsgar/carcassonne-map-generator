@@ -8,6 +8,7 @@ import {
     parseTilemapData,
     shuffleArray,
     TilemapData,
+    unique,
 } from './utils';
 
 describe('creating all possible tiles', () => {
@@ -267,5 +268,12 @@ describe('when shuffling array', () => {
         shuffleArray(shuffledArray);
         expect(array).toHaveLength(shuffledArray.length);
         expect(array).not.toEqual(shuffledArray);
+    });
+});
+
+describe('when getting unique values from array', () => {
+    it('returns the correct values', () => {
+        const array = [1, 5, 4, 8, 6, 7, 4, 3, 4, 6, 8, 9, 7, 5, 3, 5, 8, 5, 2, 2, 9];
+        expect(unique(array)).toEqual([1, 5, 4, 8, 6, 7, 3, 9, 2]);
     });
 });

@@ -307,6 +307,15 @@ const shuffleArray = (array: any[]): void => {
 };
 
 /**
+ * Returns unique values from an array
+ * @param {any[]} array - The array to get unique values from
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const unique = (array: any[]): any[] => {
+    return array.filter((e, i, a) => a.indexOf(e) === i);
+};
+
+/**
  * Sleeps for a specified amount of time. If time is less than 1, it will add the time to unslept time and if it is greater than 1, it will sleep for the unslept time
  * @param {number} ms - The amount of milliseconds to sleep for
  * @return {Promise<void>} A promise that resolves when the sleep is complete
@@ -328,15 +337,6 @@ const sleep = async (ms: number): Promise<void> => {
 const getSleepMs = (animationSpeed: number, steepness = 0.005): number => {
     const normalizedSpeed = animationSpeed / 1000;
     return (1.00001 - (Math.pow(steepness, normalizedSpeed) - 1) / (steepness - 1)) * 1000 - 0.009;
-};
-
-/**
- * Returns unique values from an array
- * @param {any[]} array - The array to get unique values from
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const unique = (array: any[]): any[] => {
-    return array.filter((e, i, a) => a.indexOf(e) === i);
 };
 
 export {
