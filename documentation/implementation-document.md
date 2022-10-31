@@ -22,6 +22,7 @@ The idea for this structure is that the algorithm and visualization are independ
 
 The goal of this project was more of a visualizer so absolute performance wasn't a goal. A lot of performance is lost in the required visualization handlers even when they aren't used as the code still runs through eg. the sleeping function with a 0ms sleep time. From a quick test about 50% of the time spent in checking possible tiles for a cell is spent in trying to sleep for 0ms.
 
+A graph for how long it takes to generate a map with the default tilemap without any maze generation.
 ![Performance graph](./images/timeTaken.png)
 
 ## Improvement ideas
