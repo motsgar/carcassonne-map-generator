@@ -226,20 +226,18 @@ describe('when limiting a map to a maze', () => {
     const maze = createMaze(width, height);
     processMaze(maze);
 
-    it('successfully limits the map', () => {
+    it('successfully limits the map', async () => {
         const possibleTiles = createAllPossibleTiles();
         const map = createMap(width, height, possibleTiles);
 
-        expect(() => {
-            limitMapToMaze(map, maze, {
-                sideType: Side.Road,
-                allowSideConnections: false,
-                allowTilesOutsideWithSide: false,
-            });
-        }).not.toThrow();
+        await limitMapToMaze(map, maze, {
+            sideType: Side.Road,
+            allowSideConnections: false,
+            allowTilesOutsideWithSide: false,
+        });
     });
 
-    it('fails to limit when insufficient tiles are available', () => {
+    it('fails to limit when insufficient tiles are available', async () => {
         const possibleTiles = [
             {
                 bottom: Side.Road,
@@ -252,13 +250,13 @@ describe('when limiting a map to a maze', () => {
         ];
         const map = createMap(width, height, possibleTiles);
 
-        expect(() => {
+        await expect(
             limitMapToMaze(map, maze, {
                 sideType: Side.Road,
                 allowSideConnections: false,
                 allowTilesOutsideWithSide: false,
-            });
-        }).toThrow();
+            })
+        ).rejects.toThrow();
     });
 });
 

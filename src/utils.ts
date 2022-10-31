@@ -275,6 +275,24 @@ const limitMapToMaze = async (
 };
 
 /**
+ * Creates all possible tiles with all orientations that can be made from the sides available
+ * @return {Tile[]} A list of tiles that can be used to create a maze
+ */
+const createAllPossibleTiles = (): Tile[] => {
+    const tiles: Tile[] = [];
+    for (const top of Object.values(Side).filter((e) => typeof e === 'number') as Side[]) {
+        for (const right of Object.values(Side).filter((e) => typeof e === 'number') as Side[]) {
+            for (const bottom of Object.values(Side).filter((e) => typeof e === 'number') as Side[]) {
+                for (const left of Object.values(Side).filter((e) => typeof e === 'number') as Side[]) {
+                    tiles.push({ top, right, bottom, left, direction: Direction.Up, tilemapIndex: -1 });
+                }
+            }
+        }
+    }
+    return tiles;
+};
+
+/**
  * Shuffles an array
  * @param {any[]} array - The array to shuffle
  */
@@ -312,4 +330,22 @@ const getSleepMs = (animationSpeed: number, steepness = 0.005): number => {
     return (1.00001 - (Math.pow(steepness, normalizedSpeed) - 1) / (steepness - 1)) * 1000 - 0.009;
 };
 
-export { limitMapToMaze, createTilesFromTilemapData, parseTilemapData, shuffleArray, sleep, getSleepMs };
+/**
+ * Returns unique values from an array
+ * @param {any[]} array - The array to get unique values from
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const unique = (array: any[]): any[] => {
+    return array.filter((e, i, a) => a.indexOf(e) === i);
+};
+
+export {
+    limitMapToMaze,
+    createTilesFromTilemapData,
+    parseTilemapData,
+    shuffleArray,
+    sleep,
+    getSleepMs,
+    createAllPossibleTiles,
+    unique,
+};

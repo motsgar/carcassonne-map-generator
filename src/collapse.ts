@@ -642,6 +642,7 @@ export {
     createMap,
     fullCollapse,
     limitTilePossibilities,
+    resetOldCellStates,
     startProcessingMap,
     stopProcessingMap,
     cancelProcessingMap,
