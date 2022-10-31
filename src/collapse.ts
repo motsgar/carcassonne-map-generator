@@ -1,4 +1,4 @@
-import { Direction, shuffleArray, sleep } from './utils';
+import { Direction, shuffleArray, sleep, unique } from './utils';
 
 // ----- //
 // Types //
@@ -187,6 +187,11 @@ const createMap = (width: number, height: number, tiles: Tile[]): CarcassonneMap
         cells: [],
     };
 
+    const topSides = unique(tiles.map((tile) => tile.top));
+    const rightSides = unique(tiles.map((tile) => tile.right));
+    const bottomSides = unique(tiles.map((tile) => tile.bottom));
+    const leftSides = unique(tiles.map((tile) => tile.left));
+
     // For every cell in the map initialize the cell with initial values and possible tiles
     for (let y = 0; y < height; y++) {
         map.cells[y] = [];
@@ -197,10 +202,10 @@ const createMap = (width: number, height: number, tiles: Tile[]): CarcassonneMap
                 possibleTiles: tiles.slice(),
                 collapsed: false,
                 sides: {
-                    [Direction.Up]: tiles.map((tile) => tile.top).filter((e, i, a) => a.indexOf(e) === i),
-                    [Direction.Right]: tiles.map((tile) => tile.right).filter((e, i, a) => a.indexOf(e) === i),
-                    [Direction.Down]: tiles.map((tile) => tile.bottom).filter((e, i, a) => a.indexOf(e) === i),
-                    [Direction.Left]: tiles.map((tile) => tile.left).filter((e, i, a) => a.indexOf(e) === i),
+                    [Direction.Up]: topSides.slice(),
+                    [Direction.Right]: rightSides.slice(),
+                    [Direction.Down]: bottomSides.slice(),
+                    [Direction.Left]: leftSides.slice(),
                 },
             };
             map.cells[y][x] = cell;
