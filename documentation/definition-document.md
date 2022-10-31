@@ -1,18 +1,16 @@
 # Definition document
 
-TODO make more proper
-
-| Required info               |                                                                                   |
+|                             |                                                                                   |
 | --------------------------- | --------------------------------------------------------------------------------- |
-| Subject                     | Creating a valid Carcassonne map                                                  |
+| Subject                     | Creating a valid Carcassonne map using wave function collapse                     |
 | Author                      | Oskar Vihriälä                                                                    |
 | Course                      | tietojenkäsittelytieteen kandidaattiohjelma                                       |
 | Language                    | English                                                                           |
-| Programming language        | JavaScript/web                                                                    |
-| Languages I understand      | JavaScript, C++, C, bit of Java                                                   |
-| Algorithms                  | Wave function collapse algorithm                                                  |
-| Problem                     | Creating a valid Carcassonne map                                                  |
+| Programming language        | TypeScript/web                                                                    |
+| Languages I understand      | TypeScript, JavaScript, C++, C, bit of Java                                       |
+| Algorithms                  | Wave function collapse, Wilsons algorithm                                         |
+| Problem                     | Creating a valid Carcassonne map with maze restrictions                           |
 | Why these algorithms?       | Because it first came to mind and I know it is a good algorighm for this use case |
 | Input                       | Web UI                                                                            |
-| Time and space complexities | Todo                                                                              |
-| Sources                     | Todo                                                                              |
+| Time and space complexities | [In implementation document](implementation-document.md)                          |
+| Sources                     | [In implementation document](implementation-document.md)                          |
