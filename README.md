@@ -9,7 +9,32 @@ This project is created as a project for the course Datastructures and algorithm
 
 # Usage instaructions
 
-TODO
+On the website it is possible to generate a maze or a map independently. To limit a map to a maze, it is required to first generate a maze and then have a empty map to limit the maze to.
+
+### Uploading a custom tilemap
+
+The tilemap json defines the tiles that are used in the map generation. The tiles are defined in order from top left to bottom right one row at a time. The tilemap json is accompanied by a tilemap image that contains the images for the tiles.
+
+```json
+{
+    "width": 6, // The width of the tilemap in tiles,
+    "height": 5, // The height of the tilemap in tiles,
+    "tileSize": 200, // The size of a single tile in pixels,
+    "tiles": [ // Array of tile objects
+        { // Each side is a string that tells what type of side it is. It can be either "Road", "City", "Field" or "Water"
+            "top": "Road",
+            "right": "Water",
+            "bottom": "Road",
+            "left": "Water"
+        },
+        ...
+    ]
+}
+```
+
+## Running locally
+
+To run the project locally, clone the repository and run `npm install` and `npm start`. The project will be available at [http://localhost:8080](http://localhost:8080)
 
 # Documentation
 

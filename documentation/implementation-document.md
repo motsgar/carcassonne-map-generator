@@ -37,7 +37,7 @@ TODO
 -   https://bolddunkley.itch.io/wfc-mixed
 -   https://weblog.jamisbuck.org/2011/1/20/maze-generation-wilson-s-algorithm
 
-## Image credits
+## Carcassonne tile image credits
 
 [https://en.wikipedia.org/wiki/Carcassonne\_(board_game)](<https://en.wikipedia.org/wiki/Carcassonne_(board_game)>)
 
