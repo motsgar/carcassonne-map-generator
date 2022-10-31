@@ -1,12 +1,18 @@
+# Testing document
+
 [![codecov](https://codecov.io/gh/motsgar/carcassonne-map-generator/branch/main/graph/badge.svg)](https://codecov.io/gh/motsgar/carcassonne-map-generator)
 
 Coverage report is available at [app.codecov.io/gh/motsgar/carcassonne-map-generator](https://app.codecov.io/gh/motsgar/carcassonne-map-generator)
+![coverage.png](images/coverage.png)
 
-TODO
+## What is tested and how
 
-Tests test all logic code but not UI code.
+All algorithm code is tested with unit tests. The tests are written with the [Jest](https://jestjs.io/) testing framework. Code coverage is measured with [Codecov](https://about.codecov.io/).
 
-Tests haven't yet been written as the project structure is still a bit of a mess because I haven't yet figured out
-a way to have the algorithm code testable but for the algorithm code to be able to communicate with the UI code.
+The reason that coverage isn't higher is that some parts of the algorithm code contains visualization specific code so those parts are not tested. The visualization is tested by seeing that it works in the browser.
 
-To test the project run `npm run test`
+---
+
+## How to run tests
+
+To run tests, run `npm test` in the root directory of the project. This will run all tests.
