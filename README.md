@@ -5,7 +5,7 @@ The project is available at [https://carcassonne.motsgar.fi](https://carcassonne
 
 ---
 
-This project is created as a practice project for the course Datastructures and algorithms in the [University of Helsinki](https://www.helsinki.fi/en).
+This project is created as a project for the course Datastructures and algorithms in the [University of Helsinki](https://www.helsinki.fi/en).
 
 # Usage instaructions
 
