@@ -1,5 +1,5 @@
 import './maze';
-import { createMaze, processMaze } from './maze';
+import { createMaze, processMaze, setPathPercentage, setRandomWallRemovePercentage } from './maze';
 
 describe('when creating a maze', () => {
     const width = 15;
@@ -45,6 +45,9 @@ describe('when creating a maze', () => {
 describe('when processing a maze', () => {
     const width = 15;
     const height = 17;
+
+    setRandomWallRemovePercentage(50);
+    setPathPercentage(50);
 
     it('generates a maze that has more than 0 maze cells', async () => {
         const maze = createMaze(width, height);

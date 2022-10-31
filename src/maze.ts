@@ -45,7 +45,7 @@ export type MazeEventCallback = (event: MazeEvent) => void;
 // ------------------- //
 
 let mazePathPercentage = 0;
-let randomWallRemovePercentage = 0;
+let randomWallRemovalPercentage = 0;
 
 // ------------------------- //
 // Animation State Variables //
@@ -74,7 +74,7 @@ const setPathPercentage = (percentage: number): void => {
  * @param {number} percentage - The percentage of the walls that should be removed
  */
 const setRandomWallRemovePercentage = (percentage: number): void => {
-    randomWallRemovePercentage = percentage;
+    randomWallRemovalPercentage = percentage;
 };
 
 // ------------------- //
@@ -367,14 +367,14 @@ const processMaze = async (maze: Maze, mazeEvent?: MazeEventCallback): Promise<v
                     y < maze.height - 1 &&
                     maze.cells[y][x].isMaze &&
                     maze.cells[y + 1][x].isMaze &&
-                    Math.random() < randomWallRemovePercentage
+                    Math.random() < randomWallRemovalPercentage
                 )
                     maze.cells[y][x].walls.bottom.open = true;
                 if (
                     x < maze.width - 1 &&
                     maze.cells[y][x].isMaze &&
                     maze.cells[y][x + 1].isMaze &&
-                    Math.random() < randomWallRemovePercentage
+                    Math.random() < randomWallRemovalPercentage
                 )
                     maze.cells[y][x].walls.right.open = true;
             }
