@@ -12,7 +12,6 @@ type Highlight = {
 };
 
 const sideColors = {
-    [Side.Startpiece]: '#ff0000',
     [Side.Water]: '#0000ff',
     [Side.Field]: '#00bb55',
     [Side.Road]: '#ffffff',

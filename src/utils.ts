@@ -1,4 +1,11 @@
-import { CarcassonneMap, Side, limitTilePossibilities, Tile, CollapseEventCallback } from './collapse';
+import {
+    CarcassonneMap,
+    Side,
+    limitTilePossibilities,
+    Tile,
+    CollapseEventCallback,
+    startProcessingMap,
+} from './collapse';
 import { Maze } from './maze';
 import * as zod from 'zod';
 
@@ -163,6 +170,7 @@ const limitMapToMaze = async (
     collapseEvent?: CollapseEventCallback
 ): Promise<void> => {
     if (!options.allowTilesOutsideWithSide) options.allowSideConnections = false;
+    startProcessingMap();
 
     try {
         for (let y = 0; y < map.height; y++) {
