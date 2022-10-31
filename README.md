@@ -15,13 +15,14 @@ On the website it is possible to generate a maze or a map independently. To limi
 
 The tilemap json defines the tiles that are used in the map generation. The tiles are defined in order from top left to bottom right one row at a time. The tilemap json is accompanied by a tilemap image that contains the images for the tiles.
 
-```json
+```js
 {
     "width": 6, // The width of the tilemap in tiles,
     "height": 5, // The height of the tilemap in tiles,
     "tileSize": 200, // The size of a single tile in pixels,
     "tiles": [ // Array of tile objects
-        { // Each side is a string that tells what type of side it is. It can be either "Road", "City", "Field" or "Water"
+        { // Each side is a string that tells what type of side it is.
+          // It can be either "Road", "City", "Field" or "Water"
             "top": "Road",
             "right": "Water",
             "bottom": "Road",
