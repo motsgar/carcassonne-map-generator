@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "sourceMap": true,
+        "outDir": "./dist/",
+        "target": "ESNext",
+        "allowJs": false,
+        "strict": true
+    },
+    "exclude": ["**/*.test.ts", "node_modules"]
+}
