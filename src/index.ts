@@ -54,14 +54,14 @@ let mapGenerationStarted = false;
 // Callback handlers
 const mazeProcessingCallback = (event: MazeEvent): void => {
     switch (event.type) {
-        case 'event1':
+        case 'hightlightCell':
             ui.highlightMazeCell(event.x, event.y, (1010 - controls.animationSpeed) / 1000);
             break;
-        case 'event2':
+        case 'currentPath':
             ui.highlightMazeCell(event.x, event.y, (1010 - controls.animationSpeed) / 1000 / 3);
             ui.setCurrentPath(event.currentPath);
             break;
-        case 'event3':
+        case 'resetPath':
             ui.setCurrentPath({ cells: [], walls: [] });
             break;
     }

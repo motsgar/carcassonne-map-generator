@@ -176,7 +176,7 @@ const limitMapToMaze = async (
         for (let y = 0; y < map.height; y++) {
             for (let x = 0; x < map.width; x++) {
                 const mapCell = map.cells[y][x];
-                const mazeCell = maze.tiles[y][x];
+                const mazeCell = maze.cells[y][x];
 
                 if (mazeCell === undefined) continue;
 

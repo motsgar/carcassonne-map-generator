@@ -1,5 +1,9 @@
 import { Direction, shuffleArray, sleep } from './utils';
 
+// ----- //
+// Types //
+// ----- //
+
 export enum Side {
     Water,
     Field,
@@ -48,11 +52,10 @@ export type PossibleTiles = { tiles: Tile[]; sides: MapCell['sides'] };
 
 export type CollapseEvent =
     | {
-          type: 'checkSide';
+          type: 'initCheckTile';
           x: number;
           y: number;
-          direction: Direction;
-          success: boolean;
+          tile: Tile;
       }
     | {
           type: 'setCheckTile';
@@ -68,56 +71,28 @@ export type CollapseEvent =
           tile: Tile;
       }
     | {
-          type: 'initCheckTile';
+          type: 'checkSide';
           x: number;
           y: number;
-          tile: Tile;
+          direction: Direction;
+          success: boolean;
       };
 
 export type CollapseEventCallback = (event: CollapseEvent) => void;
 
-/**
- * Generates a map with the given width and height and the given tilemap
- * @param {number} width - Width of the map that should be generated
- * @param {number} height - Height of the map that should be generated
- * @param {Tile[]} tiles - Tiles that are used to generate the map
- * @return {CarcassonneMap} A map with the given width and height
- */
-const createMap = (width: number, height: number, tiles: Tile[]): CarcassonneMap => {
-    const map: CarcassonneMap = {
-        width,
-        height,
-        cells: [],
-    };
-
-    // For every cell in the map initialize the cell with initial values and possible tiles
-    for (let y = 0; y < height; y++) {
-        map.cells[y] = [];
-        for (let x = 0; x < width; x++) {
-            const cell = {
-                x,
-                y,
-                possibleTiles: tiles.slice(),
-                collapsed: false,
-                sides: {
-                    [Direction.Up]: tiles.map((tile) => tile.top).filter((e, i, a) => a.indexOf(e) === i),
-                    [Direction.Right]: tiles.map((tile) => tile.right).filter((e, i, a) => a.indexOf(e) === i),
-                    [Direction.Down]: tiles.map((tile) => tile.bottom).filter((e, i, a) => a.indexOf(e) === i),
-                    [Direction.Left]: tiles.map((tile) => tile.left).filter((e, i, a) => a.indexOf(e) === i),
-                },
-            };
-            map.cells[y][x] = cell;
-        }
-    }
-
-    return map;
-};
+// ------------------------- //
+// Animation State Variables //
+// ------------------------- //
 
 let processingMap = false;
 let shouldStopProcessingMap = false;
 let mapProcessingStartTime = 0;
 let mapProcessingSleepsHappened = 0;
 let sleepMs = 0;
+
+// ------------------- //
+// Animation Functions //
+// ------------------- //
 
 /**
  * Initializes global collapsing variables to allow slowing down the collapsing animation and canceling it
@@ -126,6 +101,13 @@ const startProcessingMap = (): void => {
     processingMap = true;
     mapProcessingStartTime = Date.now();
     mapProcessingSleepsHappened = 0;
+};
+
+/**
+ * Updates global map processing variables to indicate map processing is done
+ */
+const stopProcessingMap = (): void => {
+    processingMap = false;
 };
 
 /**
@@ -185,6 +167,47 @@ const advancedSleep = async (): Promise<void> => {
     if (timePassed < timeShouldHavePassed) {
         await sleep(timeShouldHavePassed - timePassed);
     }
+};
+
+// ------------------- //
+// Algorighm Functions //
+// ------------------- //
+
+/**
+ * Generates a map with the given width and height and the given tilemap
+ * @param {number} width - Width of the map that should be generated
+ * @param {number} height - Height of the map that should be generated
+ * @param {Tile[]} tiles - Tiles that are used to generate the map
+ * @return {CarcassonneMap} A map with the given width and height
+ */
+const createMap = (width: number, height: number, tiles: Tile[]): CarcassonneMap => {
+    const map: CarcassonneMap = {
+        width,
+        height,
+        cells: [],
+    };
+
+    // For every cell in the map initialize the cell with initial values and possible tiles
+    for (let y = 0; y < height; y++) {
+        map.cells[y] = [];
+        for (let x = 0; x < width; x++) {
+            const cell: MapCell = {
+                x,
+                y,
+                possibleTiles: tiles.slice(),
+                collapsed: false,
+                sides: {
+                    [Direction.Up]: tiles.map((tile) => tile.top).filter((e, i, a) => a.indexOf(e) === i),
+                    [Direction.Right]: tiles.map((tile) => tile.right).filter((e, i, a) => a.indexOf(e) === i),
+                    [Direction.Down]: tiles.map((tile) => tile.bottom).filter((e, i, a) => a.indexOf(e) === i),
+                    [Direction.Left]: tiles.map((tile) => tile.left).filter((e, i, a) => a.indexOf(e) === i),
+                },
+            };
+            map.cells[y][x] = cell;
+        }
+    }
+
+    return map;
 };
 
 /**
@@ -529,7 +552,7 @@ const resetOldCellStates = (map: CarcassonneMap, oldCellStates: OldCellStates): 
 };
 
 /**
- * Function to fully collapse a map by collapsing all cells one by one until no more cells can be collapsed
+ * Function to fully collapse a map using the wave function collapse algorithm
  * @param {CarcassonneMap} map - The map to collapse
  * @param {CollapseEventCallback | undefined} collapseEvent - Callback for collapsing events
  * @return {Promise<void>} A promise that resolves when the map is fully collapsed
@@ -610,7 +633,17 @@ const fullCollapse = async (map: CarcassonneMap, collapseEvent?: CollapseEventCa
             }
         }
         throw e;
+    } finally {
+        stopProcessingMap();
     }
 };
 
-export { createMap, fullCollapse, limitTilePossibilities, startProcessingMap, cancelProcessingMap, setSleepMs };
+export {
+    createMap,
+    fullCollapse,
+    limitTilePossibilities,
+    startProcessingMap,
+    stopProcessingMap,
+    cancelProcessingMap,
+    setSleepMs,
+};

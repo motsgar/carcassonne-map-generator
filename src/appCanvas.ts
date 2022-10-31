@@ -423,7 +423,7 @@ const draw = (): void => {
         }
 
         if (shouldDrawMaze) {
-            for (const row of currentMaze.tiles) {
+            for (const row of currentMaze.cells) {
                 for (const tile of row) {
                     const pos = getPosOnCanvas({ x: tile.x, y: tile.y });
                     const posOffset = getPosOnCanvas({ x: tile.x + 1, y: tile.y + 1 });
@@ -491,8 +491,8 @@ const draw = (): void => {
                 );
 
                 if (
-                    currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.right) ||
-                    currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.right.open
+                    currentWalls.includes(currentMaze.cells[highlight.y]?.[highlight.x]?.walls.right) ||
+                    currentMaze.cells[highlight.y]?.[highlight.x]?.walls.right.open
                 ) {
                     appCtx.fillRect(
                         Math.floor(pos.x + posOffset.x) - Math.ceil(mazeWallThickness / 2),
@@ -502,8 +502,8 @@ const draw = (): void => {
                     );
                 }
                 if (
-                    currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.bottom) ||
-                    currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.bottom.open
+                    currentWalls.includes(currentMaze.cells[highlight.y]?.[highlight.x]?.walls.bottom) ||
+                    currentMaze.cells[highlight.y]?.[highlight.x]?.walls.bottom.open
                 ) {
                     appCtx.fillRect(
                         Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
@@ -513,8 +513,8 @@ const draw = (): void => {
                     );
                 }
                 if (
-                    currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.left) ||
-                    currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.left.open
+                    currentWalls.includes(currentMaze.cells[highlight.y]?.[highlight.x]?.walls.left) ||
+                    currentMaze.cells[highlight.y]?.[highlight.x]?.walls.left.open
                 ) {
                     appCtx.fillRect(
                         Math.floor(pos.x),
@@ -524,8 +524,8 @@ const draw = (): void => {
                     );
                 }
                 if (
-                    currentWalls.includes(currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.top) ||
-                    currentMaze.tiles[highlight.y]?.[highlight.x]?.walls.top.open
+                    currentWalls.includes(currentMaze.cells[highlight.y]?.[highlight.x]?.walls.top) ||
+                    currentMaze.cells[highlight.y]?.[highlight.x]?.walls.top.open
                 ) {
                     appCtx.fillRect(
                         Math.floor(pos.x) + Math.floor(mazeWallThickness / 2),
