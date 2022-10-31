@@ -14,6 +14,8 @@ The idea for this structure is that the algorithm and visualization are independ
     -   `index.ts` Main file that runs correct algorithm code based on what the user has selected and handles the communication between the visualization and the algorithm code
     -   `appCanvas.ts` Contains the code for the visualization
     -   `controls.ts` Contains the code for the control panel
+-   `performanceTests/` Contains performance tests for the algorithm
+    -   `performance.ts` Contains a basic performance test for the WFC algorithm
 -   `public/` Static files eg. html, css and images
 -   `documentation/` Contains documentation files for the project
     -   `images/` Contains images used in documentation

@@ -11,6 +11,8 @@ All algorithm code is tested with unit tests. The tests are written with the [Je
 
 The reason that coverage isn't higher is that some parts of the algorithm code contains visualization specific code so those parts are not tested. The visualization is tested by seeing that it works in the browser. The tested files are `collapse.ts`, `maze.ts` and `utils.ts`.
 
+The performance of the wave function collapse algorithm is tested by running the algorithm from 2x2 to 100x100 maps and measuring the time it takes to generate the map. The test is run with the default tilemap and without any maze generation. Look at the [Implementation document](./documentation/implementation-document.md) for more information about the performance.
+
 ## How to run tests
 
-To run tests, run `npm test` in the root directory of the project. This will run all tests.
+To run unit tests, run `npm run test`. For performance tests, run `npm run performance`.
