@@ -1,4 +1,6 @@
-The project structure is still not that final so I'm going to explain it after I get the project restructured.
+~~The project structure is still not that final so I'm going to explain it after I get the project restructured.~~
+
+TODO
 
 ## Links related to the project:
 

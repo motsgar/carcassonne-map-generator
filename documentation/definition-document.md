@@ -1,5 +1,7 @@
 # Definition document
 
+TODO make more proper
+
 | Required info               |                                                                                   |
 | --------------------------- | --------------------------------------------------------------------------------- |
 | Subject                     | Creating a valid Carcassonne map                                                  |

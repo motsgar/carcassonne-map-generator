@@ -2,6 +2,8 @@
 
 Coverage report is available at [app.codecov.io/gh/motsgar/carcassonne-map-generator](https://app.codecov.io/gh/motsgar/carcassonne-map-generator)
 
+TODO
+
 Tests test all logic code but not UI code.
 
 Tests haven't yet been written as the project structure is still a bit of a mess because I haven't yet figured out
