@@ -177,6 +177,12 @@ describe('collapsing a map', () => {
             for (let x = 0; x < mapWidth; x++) {
                 expect(map.cells[y][x].collapsed).toBe(true);
                 expect(map.cells[y][x].possibleTiles).toHaveLength(1);
+
+                expect(map.cells[y][x].sides[Direction.Up]).toHaveLength(1);
+                expect(map.cells[y][x].sides[Direction.Right]).toHaveLength(1);
+                expect(map.cells[y][x].sides[Direction.Down]).toHaveLength(1);
+                expect(map.cells[y][x].sides[Direction.Left]).toHaveLength(1);
+
                 if (x > 0) {
                     expect(map.cells[y][x].sides[Direction.Left]).toEqual(map.cells[y][x - 1].sides[Direction.Right]);
                     expect(map.cells[y][x].possibleTiles[0].left).toEqual(map.cells[y][x - 1].possibleTiles[0].right);
