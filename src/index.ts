@@ -343,6 +343,9 @@ controls.on('tilemapJsonUpload', (tilemapDataString) => {
         if (originalTilemapData !== undefined) tiles = createTilesFromTilemapData(originalTilemapData);
         if (originalTilemapData !== undefined && currentTilemap.image !== undefined)
             ui.setCurrentTilemap(currentTilemap.image, originalTilemapData);
+
+        resetWFCAnimation();
+
         return;
     }
 
@@ -375,6 +378,7 @@ controls.on('tilemapImageUpload', (image) => {
         if (originalTilemapImage !== undefined && currentTilemap.tilemapData !== undefined)
             ui.setCurrentTilemap(originalTilemapImage, currentTilemap.tilemapData);
 
+        resetWFCAnimation();
         return;
     }
 
