@@ -187,7 +187,6 @@ const stopFullAnimation = async (): Promise<void> => {
         mazeGenerationRunning = false;
         await cancelProcessingMaze();
     }
-    // if (mazeLimitingRunning) await cancelLimitingMap();
     if (collapsingMapRunning || mazeLimitingRunning) {
         console.log('canceling');
         collapsingMapRunning = false;

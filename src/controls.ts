@@ -224,7 +224,7 @@ tilemapImageInputElement.addEventListener('change', () => {
     }
 });
 
-// Functions
+// Spaghetti functions
 export const startAnimation = (): void => {
     startAnimationController.disable();
     startMazeAnimationController.disable();
