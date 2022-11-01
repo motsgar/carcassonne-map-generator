@@ -9,11 +9,19 @@ This project is created as a project for the course Datastructures and algorithm
 
 # Usage instaructions
 
-On the website it is possible to generate a maze or a map independently. To limit a map to a maze, it is required to first generate a maze and then have a empty map to limit the maze to.
+The control panel is mostly self explanatory. Only the buttons that can be pressed at whatever time are enabled.
+
+#### A few examples of what can be done:
+
+-   To show the full process of creating a maze and limiting it to a map and then collapsing that map, press the upper most `Start animation` button. The animation will run until the map is collapsed or it is stopped.
+-   To generate a maze or map without maze limitation press `Start animation` under the respective section. The animation will run until it is done or until you press `Stop animation`.
+-   To resize the canvas reset everything and change the size of the canvas.
 
 ### Uploading a custom tilemap
 
 The tilemap json defines the tiles that are used in the map generation. The tiles are defined in order from top left to bottom right one row at a time. The tilemap json is accompanied by a tilemap image that contains the images for the tiles.
+
+After uploading the tilemap json and image, the tilemap is automatically loaded and the map reset to be able to generate a map with the new tilemap.
 
 ```js
 {
