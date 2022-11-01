@@ -366,7 +366,7 @@ controls.on('tilemapJsonUpload', (tilemapDataString) => {
     tiles = createTilesFromTilemapData(tilemapData);
     currentTilemap.tilemapData = tilemapData;
 
-    initMap();
+    resetWFCAnimation();
     if (currentTilemap.image !== undefined) ui.setCurrentTilemap(currentTilemap.image, tilemapData);
 });
 
@@ -380,7 +380,8 @@ controls.on('tilemapImageUpload', (image) => {
     }
 
     currentTilemap.image = image;
-    initMap();
+
+    resetWFCAnimation();
     if (currentTilemap.tilemapData !== undefined) ui.setCurrentTilemap(image, currentTilemap.tilemapData);
 });
 
