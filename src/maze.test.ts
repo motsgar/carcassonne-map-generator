@@ -62,7 +62,7 @@ describe('when processing a maze', () => {
             }
         }
 
-        expect(mazecellsCount).toBeGreaterThan(0);
+        expect((mazecellsCount / (width * height)) * 100).toBeGreaterThanOrEqual(50);
     });
 
     it('generates a maze where non maze cells have all walls', async () => {
