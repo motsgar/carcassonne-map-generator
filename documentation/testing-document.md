@@ -16,7 +16,7 @@ Some other functions that are part of the algorithm code are also tested.
 
 ## Performance tests
 
-The performance of the wave function collapse algorithm is tested by running the algorithms on different map sizes and measuring the time it takes to generate the map. The wave function collapse test is run with the default tilemap and without any maze limiting. Look at the [Implementation document](./documentation/implementation-document.md) for more information about the performance.
+The performance of the wave function collapse algorithm is tested by running the algorithms on different map sizes and measuring the time it takes to generate the map. The wave function collapse test is run with the default tilemap and without any maze limiting. Look at the [Implementation document](./implementation-document.md) for more information about the performance.
 
 ## How to run tests
 
